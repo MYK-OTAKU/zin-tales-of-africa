@@ -19,7 +19,10 @@ import {
   Languages
 } from "lucide-react";
 
-// Mock data pour le conte complet
+// Import des images des contes
+import araigneeElephantImg from "@/assets/conte-araignee-elephant.jpg";
+
+// Données complètes du conte avec pages
 const conteComplet = {
   id: 1,
   titre: "L'Araignée et l'Éléphant",
@@ -32,56 +35,56 @@ const conteComplet = {
     {
       id: 1,
       contenu: "Il était une fois, dans un village du Mali, une petite araignée très rusée nommée Kwaku. Malgré sa petite taille, elle était connue pour sa grande intelligence et sa capacité à résoudre les problèmes les plus difficiles.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page1-fr.mp3",
       audioBambara: "/audio/page1-bambara.mp3"
     },
     {
       id: 2,
       contenu: "Un jour, un énorme éléphant arriva dans le village. Il était si grand et si fort qu'il pensait pouvoir tout écraser sur son passage. 'Je suis le plus puissant!' rugissait-il, faisant trembler les cases du village.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page2-fr.mp3",
       audioBambara: "/audio/page2-bambara.mp3"
     },
     {
       id: 3,
       contenu: "L'éléphant décida de défier tous les animaux du village. 'Qui ose se mesurer à moi?' demanda-t-il d'une voix tonnante. Tous les animaux tremblaient de peur, sauf la petite araignée Kwaku.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page3-fr.mp3",
       audioBambara: "/audio/page3-bambara.mp3"
     },
     {
       id: 4,
       contenu: "'Moi, je relève ton défi,' dit courageusement Kwaku. L'éléphant éclata de rire. 'Toi? Une si petite créature? Tu ne fais même pas la taille de mon orteil!' Mais Kwaku sourit mystérieusement.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page4-fr.mp3",
       audioBambara: "/audio/page4-bambara.mp3"
     },
     {
       id: 5,
       contenu: "Kwaku proposa un défi intelligent : 'Celui qui réussira à faire tomber le plus gros baobab de la forêt sera déclaré vainqueur.' L'éléphant accepta, confiant en sa force brute.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page5-fr.mp3",
       audioBambara: "/audio/page5-bambara.mp3"
     },
     {
       id: 6,
       contenu: "Pendant que l'éléphant chargeait le baobab de toutes ses forces, Kwaku tissa silencieusement sa toile autour des racines de l'arbre, créant un réseau complexe et fragile.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page6-fr.mp3",
       audioBambara: "/audio/page6-bambara.mp3"
     },
     {
       id: 7,
       contenu: "Au moment crucial, quand l'éléphant donna son coup le plus puissant, Kwaku tira sur un fil stratégique de sa toile. Le baobab, déstabilisé par la toile, s'effondra dans un grand fracas!",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page7-fr.mp3",
       audioBambara: "/audio/page7-bambara.mp3"
     },
     {
       id: 8,
       contenu: "L'éléphant était stupéfait. Kwaku expliqua : 'La vraie force ne vient pas des muscles, mais de l'intelligence et de la stratégie. La ruse peut vaincre la force brute.' Depuis ce jour, l'éléphant respecta la petite araignée.",
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: araigneeElephantImg,
       audioFr: "/audio/page8-fr.mp3",
       audioBambara: "/audio/page8-bambara.mp3"
     }

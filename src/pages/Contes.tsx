@@ -7,6 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlayCircle, Search, Clock, Crown, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Import des images des contes
+import araigneeElephantImg from "@/assets/conte-araignee-elephant.jpg";
+import lionSourisImg from "@/assets/conte-lion-souris.jpg";
+import princesseEauxImg from "@/assets/conte-princesse-eaux.jpg";
+import griotFilsImg from "@/assets/conte-griot-fils.jpg";
+import baobabMagiqueImg from "@/assets/conte-baobab-magique.jpg";
+import chasseurEspritImg from "@/assets/conte-chasseur-esprit.jpg";
+
 // Mock data pour les contes
 const contes = [
   {
@@ -16,7 +24,7 @@ const contes = [
     categorie: "Sagesse",
     duree: "8 min",
     isPremium: false,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: araigneeElephantImg,
     langues: ["français", "bambara"]
   },
   {
@@ -26,7 +34,7 @@ const contes = [
     categorie: "Amitié",
     duree: "6 min",
     isPremium: false,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: lionSourisImg,
     langues: ["français", "bambara"]
   },
   {
@@ -36,7 +44,7 @@ const contes = [
     categorie: "Mystique",
     duree: "12 min",
     isPremium: true,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: princesseEauxImg,
     langues: ["français", "bambara"]
   },
   {
@@ -46,7 +54,7 @@ const contes = [
     categorie: "Famille",
     duree: "10 min",
     isPremium: true,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: griotFilsImg,
     langues: ["français", "bambara"]
   },
   {
@@ -56,7 +64,7 @@ const contes = [
     categorie: "Magie",
     duree: "9 min",
     isPremium: false,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: baobabMagiqueImg,
     langues: ["français", "bambara"]
   },
   {
@@ -66,7 +74,7 @@ const contes = [
     categorie: "Aventure",
     duree: "14 min",
     isPremium: true,
-    imageUrl: "/api/placeholder/400/250",
+    imageUrl: chasseurEspritImg,
     langues: ["français", "bambara"]
   }
 ];
