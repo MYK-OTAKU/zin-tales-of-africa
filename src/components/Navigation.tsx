@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { 
   BookOpen, 
   Lightbulb, 
@@ -9,13 +11,17 @@ import {
   Menu, 
   Crown, 
   User,
-  Star
+  Star,
+  LogIn,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut, loading } = useAuth();
 
   const navItems = [
     {
@@ -88,13 +94,49 @@ const Navigation = () => {
 
           {/* User Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              <User className="h-4 w-4 mr-2" />
-              Connexion
-            </Button>
-            <Button size="sm" className="bg-gradient-primary hover:shadow-warm">
-              S'inscrire
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                      <AvatarFallback>
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Crown className="mr-2 h-4 w-4" />
+                    <span>Premium</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Déconnexion</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="bg-gradient-primary hover:shadow-warm">
+                    S'inscrire
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -123,13 +165,45 @@ const Navigation = () => {
 
                 {/* User Actions */}
                 <div className="flex flex-col gap-3 px-4 pt-6 border-t border-border">
-                  <Button variant="outline" className="w-full justify-start">
-                    <User className="h-4 w-4 mr-2" />
-                    Connexion
-                  </Button>
-                  <Button className="w-full bg-gradient-primary hover:shadow-warm">
-                    S'inscrire
-                  </Button>
+                  {user ? (
+                    <>
+                      <div className="flex items-center gap-3 px-2 py-1">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                          <AvatarFallback>
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-4 w-4 mr-2" />
+                        Profil
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start" onClick={signOut}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Déconnexion
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start">
+                          <LogIn className="h-4 w-4 mr-2" />
+                          Connexion
+                        </Button>
+                      </Link>
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full bg-gradient-primary hover:shadow-warm">
+                          S'inscrire
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>
