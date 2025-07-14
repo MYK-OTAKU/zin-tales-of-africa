@@ -1,6 +1,11 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Crown, 
   Check, 
@@ -10,10 +15,51 @@ import {
   Image, 
   Zap,
   Star,
-  Infinity
+  Infinity,
+  Loader2
 } from "lucide-react";
 
 const Premium = () => {
+  const { user } = useAuth();
+  const { subscribed, subscription_tier, loading, createCheckout, checkSubscription } = useSubscription();
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Vérifier les paramètres de retour Stripe
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      toast({
+        title: "Paiement réussi !",
+        description: "Votre abonnement Premium a été activé avec succès.",
+      });
+      // Actualiser le statut d'abonnement
+      setTimeout(() => {
+        checkSubscription();
+      }, 2000);
+    } else if (canceled === 'true') {
+      toast({
+        title: "Paiement annulé",
+        description: "Vous pouvez réessayer quand vous le souhaitez.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast, checkSubscription]);
+
+  const handleSubscribe = async (planType: 'monthly' | 'annual') => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Veuillez vous connecter pour souscrire à un abonnement.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await createCheckout(planType);
+  };
   const features = [
     {
       name: "Accès aux contes",
@@ -246,9 +292,24 @@ const Premium = () => {
                         ? 'bg-secondary hover:bg-secondary/90'
                         : ''
                     }`}
+                    onClick={() => {
+                      if (plan.name === "Gratuit") {
+                        if (!user) {
+                          window.location.href = '/auth';
+                        }
+                      } else if (plan.name === "Premium") {
+                        handleSubscribe('monthly');
+                      } else if (plan.name === "Premium Annuel") {
+                        handleSubscribe('annual');
+                      }
+                    }}
+                    disabled={loading || (plan.name !== "Gratuit" && subscribed)}
                   >
-                    {plan.button}
-                    {plan.name === "Premium Annuel" && (
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : null}
+                    {subscribed && plan.name !== "Gratuit" ? 'Déjà abonné' : plan.button}
+                    {plan.name === "Premium Annuel" && !loading && (
                       <Infinity className="w-4 h-4 ml-2" />
                     )}
                   </Button>

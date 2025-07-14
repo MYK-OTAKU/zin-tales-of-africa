@@ -310,9 +310,13 @@ const ConteReading = () => {
 
             <audio
               ref={audioRef}
-              src={currentAudioUrl}
+              src={`https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav`}
               onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
               onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+              onError={() => {
+                console.log('Audio placeholder en cours de chargement...');
+                setDuration(60); // Durée par défaut pour la simulation
+              }}
             />
           </CardContent>
         </Card>
