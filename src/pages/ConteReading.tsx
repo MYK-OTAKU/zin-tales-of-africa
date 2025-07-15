@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,84 +16,38 @@ import {
   Scroll,
   Crown,
   Download,
-  Languages
+  Languages,
+  Heart,
+  Sparkles,
+  Lock,
+  Clock
 } from "lucide-react";
+import { useContes, type Conte, type ContePage } from "@/hooks/useContes";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Import des images des contes
+// Import des images par défaut
 import araigneeElephantImg from "@/assets/conte-araignee-elephant.jpg";
-
-// Données complètes du conte avec pages
-const conteComplet = {
-  id: 1,
-  titre: "L'Araignée et l'Éléphant",
-  description: "Une histoire sur la ruse et l'intelligence face à la force brute.",
-  categorie: "Sagesse",
-  duree: "8 min",
-  isPremium: false,
-  langues: ["français", "bambara"],
-  pages: [
-    {
-      id: 1,
-      contenu: "Il était une fois, dans un village du Mali, une petite araignée très rusée nommée Kwaku. Malgré sa petite taille, elle était connue pour sa grande intelligence et sa capacité à résoudre les problèmes les plus difficiles.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page1-fr.mp3",
-      audioBambara: "/audio/page1-bambara.mp3"
-    },
-    {
-      id: 2,
-      contenu: "Un jour, un énorme éléphant arriva dans le village. Il était si grand et si fort qu'il pensait pouvoir tout écraser sur son passage. 'Je suis le plus puissant!' rugissait-il, faisant trembler les cases du village.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page2-fr.mp3",
-      audioBambara: "/audio/page2-bambara.mp3"
-    },
-    {
-      id: 3,
-      contenu: "L'éléphant décida de défier tous les animaux du village. 'Qui ose se mesurer à moi?' demanda-t-il d'une voix tonnante. Tous les animaux tremblaient de peur, sauf la petite araignée Kwaku.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page3-fr.mp3",
-      audioBambara: "/audio/page3-bambara.mp3"
-    },
-    {
-      id: 4,
-      contenu: "'Moi, je relève ton défi,' dit courageusement Kwaku. L'éléphant éclata de rire. 'Toi? Une si petite créature? Tu ne fais même pas la taille de mon orteil!' Mais Kwaku sourit mystérieusement.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page4-fr.mp3",
-      audioBambara: "/audio/page4-bambara.mp3"
-    },
-    {
-      id: 5,
-      contenu: "Kwaku proposa un défi intelligent : 'Celui qui réussira à faire tomber le plus gros baobab de la forêt sera déclaré vainqueur.' L'éléphant accepta, confiant en sa force brute.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page5-fr.mp3",
-      audioBambara: "/audio/page5-bambara.mp3"
-    },
-    {
-      id: 6,
-      contenu: "Pendant que l'éléphant chargeait le baobab de toutes ses forces, Kwaku tissa silencieusement sa toile autour des racines de l'arbre, créant un réseau complexe et fragile.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page6-fr.mp3",
-      audioBambara: "/audio/page6-bambara.mp3"
-    },
-    {
-      id: 7,
-      contenu: "Au moment crucial, quand l'éléphant donna son coup le plus puissant, Kwaku tira sur un fil stratégique de sa toile. Le baobab, déstabilisé par la toile, s'effondra dans un grand fracas!",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page7-fr.mp3",
-      audioBambara: "/audio/page7-bambara.mp3"
-    },
-    {
-      id: 8,
-      contenu: "L'éléphant était stupéfait. Kwaku expliqua : 'La vraie force ne vient pas des muscles, mais de l'intelligence et de la stratégie. La ruse peut vaincre la force brute.' Depuis ce jour, l'éléphant respecta la petite araignée.",
-      imageUrl: araigneeElephantImg,
-      audioFr: "/audio/page8-fr.mp3",
-      audioBambara: "/audio/page8-bambara.mp3"
-    }
-  ],
-  morale: "L'intelligence et la ruse peuvent triompher de la force brute. Il ne faut jamais sous-estimer quelqu'un à cause de sa taille ou de son apparence."
-};
 
 const ConteReading = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { subscribed } = useSubscription();
+  const { 
+    fetchContePages, 
+    fetchUserProgress, 
+    updateUserProgress, 
+    toggleFavorite, 
+    canAccessConte, 
+    getAccessMessage,
+    generateImage 
+  } = useContes();
+
+  const [conte, setConte] = useState<Conte | null>(null);
+  const [pages, setPages] = useState<ContePage[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState<"page" | "continu">("page");
   const [selectedLanguage, setSelectedLanguage] = useState("français");
@@ -102,9 +56,66 @@ const ConteReading = () => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState([0.8]);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Simulation du chargement audio
+  // Charger le conte et ses pages
+  useEffect(() => {
+    const loadConte = async () => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+
+        // Récupérer le conte depuis Supabase
+        const { data: conteData, error: conteError } = await supabase
+          .from('contes')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (conteError) throw conteError;
+        
+        setConte(conteData);
+
+        // Vérifier l'accès
+        if (!canAccessConte(conteData)) {
+          const message = getAccessMessage(conteData);
+          if (message) {
+            toast.error(message);
+            navigate('/contes');
+            return;
+          }
+        }
+
+        // Charger les pages
+        const pagesData = await fetchContePages(id);
+        setPages(pagesData);
+
+        // Charger le progrès utilisateur
+        if (user) {
+          const progress = await fetchUserProgress(id);
+          if (progress) {
+            setCurrentPage(Math.max(0, progress.derniere_page - 1));
+            setIsFavorite(progress.favori);
+          }
+        }
+
+      } catch (error) {
+        console.error('Erreur lors du chargement du conte:', error);
+        toast.error('Erreur lors du chargement du conte');
+        navigate('/contes');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadConte();
+  }, [id, user, navigate]);
+
+  // Configuration audio
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume[0];
@@ -129,9 +140,15 @@ const ConteReading = () => {
     }
   };
 
-  const nextPage = () => {
-    if (currentPage < conteComplet.pages.length - 1) {
-      setCurrentPage(currentPage + 1);
+  const nextPage = async () => {
+    if (!pages.length) return;
+    
+    const newPageIndex = Math.min(currentPage + 1, pages.length - 1);
+    setCurrentPage(newPageIndex);
+    
+    if (user && conte) {
+      const isLastPage = newPageIndex === pages.length - 1;
+      await updateUserProgress(conte.id, newPageIndex + 1, isLastPage);
     }
   };
 
@@ -141,10 +158,58 @@ const ConteReading = () => {
     }
   };
 
-  const currentPageData = conteComplet.pages[currentPage];
+  const handleFavoriteToggle = async () => {
+    if (!conte || !user) return;
+    
+    const newStatus = await toggleFavorite(conte.id);
+    setIsFavorite(newStatus);
+  };
+
+  const handleGenerateImage = async () => {
+    if (!pages[currentPage] || !user) return;
+    
+    setGeneratingImage(true);
+    try {
+      const prompt = `Illustration for this story: ${pages[currentPage].contenu}`;
+      const imageUrl = await generateImage(prompt, `Malian traditional tale: ${conte?.titre}`);
+      
+      if (imageUrl) {
+        toast.success('Image générée avec succès !');
+        // Ici on pourrait sauvegarder l'URL de l'image dans la base de données
+      }
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const currentPageData = pages[currentPage];
   const currentAudioUrl = selectedLanguage === "français" 
-    ? currentPageData?.audioFr 
-    : currentPageData?.audioBambara;
+    ? currentPageData?.audio_fr_url 
+    : currentPageData?.audio_bambara_url;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-earth flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Chargement du conte...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!conte || !pages.length) {
+    return (
+      <div className="min-h-screen bg-gradient-earth flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground mb-4">Conte non trouvé</p>
+          <Button asChild>
+            <Link to="/contes">Retour aux contes</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-earth">
@@ -160,9 +225,9 @@ const ConteReading = () => {
                 </Link>
               </Button>
               <Badge className="bg-accent text-accent-foreground">
-                {conteComplet.categorie}
+                {conte.categorie}
               </Badge>
-              {conteComplet.isPremium && (
+              {conte.is_premium && (
                 <Badge variant="secondary">
                   <Crown className="w-3 h-3 mr-1" />
                   Premium
@@ -171,6 +236,18 @@ const ConteReading = () => {
             </div>
             
             <div className="flex items-center gap-4">
+              {/* Favoris */}
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFavoriteToggle}
+                  className={isFavorite ? "text-red-500" : ""}
+                >
+                  <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+                </Button>
+              )}
+
               {/* Sélecteur de langue */}
               <div className="flex items-center gap-2">
                 <Languages className="w-4 h-4" />
@@ -179,8 +256,11 @@ const ConteReading = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="français">Français</SelectItem>
-                    <SelectItem value="bambara">Bambara</SelectItem>
+                    {conte.langues.map((langue) => (
+                      <SelectItem key={langue} value={langue}>
+                        {langue.charAt(0).toUpperCase() + langue.slice(1)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -207,6 +287,19 @@ const ConteReading = () => {
                 </Button>
               </div>
 
+              {/* Génération d'image IA */}
+              {user && subscribed && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleGenerateImage}
+                  disabled={generatingImage}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {generatingImage ? 'Génération...' : 'Générer Image IA'}
+                </Button>
+              )}
+
               <Button variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-2" />
                 Télécharger
@@ -221,11 +314,20 @@ const ConteReading = () => {
         {/* Titre du conte */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            {conteComplet.titre}
+            {conte.titre}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {conteComplet.description}
+            {conte.description}
           </p>
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <Badge variant="outline">
+              <Clock className="w-3 h-3 mr-1" />
+              {conte.duree_minutes} min
+            </Badge>
+            <Badge variant="outline">
+              Page {currentPage + 1} / {pages.length}
+            </Badge>
+          </div>
         </div>
 
         {/* Lecteur audio intégré */}
@@ -310,11 +412,11 @@ const ConteReading = () => {
 
             <audio
               ref={audioRef}
-              src={`https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav`}
+              src={currentAudioUrl || `https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav`}
               onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
               onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
               onError={() => {
-                console.log('Audio placeholder en cours de chargement...');
+                console.log('Audio en cours de chargement...');
                 setDuration(60); // Durée par défaut pour la simulation
               }}
             />
@@ -328,18 +430,25 @@ const ConteReading = () => {
             <Card className="overflow-hidden">
               <div className="aspect-[3/2] relative">
                 <img 
-                  src={currentPageData.imageUrl} 
+                  src={currentPageData?.image_url || araigneeElephantImg} 
                   alt={`Page ${currentPage + 1}`}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                  {currentPage + 1} / {conteComplet.pages.length}
+                  {currentPage + 1} / {pages.length}
                 </div>
+                {!subscribed && (
+                  <div className="absolute top-4 left-4">
+                    <Badge variant="secondary" className="bg-black/70 text-white">
+                      Aperçu gratuit
+                    </Badge>
+                  </div>
+                )}
               </div>
               
               <CardContent className="p-8">
                 <p className="text-lg leading-relaxed text-foreground">
-                  {currentPageData.contenu}
+                  {currentPageData?.contenu}
                 </p>
               </CardContent>
             </Card>
@@ -356,7 +465,7 @@ const ConteReading = () => {
               </Button>
 
               <div className="flex gap-2">
-                {conteComplet.pages.map((_, index) => (
+                {pages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentPage(index)}
@@ -372,7 +481,7 @@ const ConteReading = () => {
               <Button 
                 variant="outline"
                 onClick={nextPage}
-                disabled={currentPage === conteComplet.pages.length - 1}
+                disabled={currentPage === pages.length - 1}
               >
                 Page suivante
                 <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
@@ -382,14 +491,17 @@ const ConteReading = () => {
         ) : (
           <div className="space-y-8">
             {/* Affichage continu */}
-            {conteComplet.pages.map((page, index) => (
+            {pages.map((page, index) => (
               <Card key={page.id} className="overflow-hidden">
                 <div className="aspect-[3/2] relative">
                   <img 
-                    src={page.imageUrl} 
+                    src={page.image_url || araigneeElephantImg} 
                     alt={`Page ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                    {index + 1}
+                  </div>
                 </div>
                 
                 <CardContent className="p-8">
@@ -403,14 +515,34 @@ const ConteReading = () => {
         )}
 
         {/* Morale du conte */}
-        <Card className="mt-12 bg-accent text-accent-foreground">
-          <CardContent className="p-8 text-center">
-            <h3 className="text-xl font-semibold mb-4">Morale de l'histoire</h3>
-            <p className="text-lg italic">
-              {conteComplet.morale}
-            </p>
-          </CardContent>
-        </Card>
+        {conte.morale && (
+          <Card className="mt-12 bg-accent text-accent-foreground">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-xl font-semibold mb-4">Morale de l'histoire</h3>
+              <p className="text-lg italic">
+                {conte.morale}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Suggestion d'upgrade pour les utilisateurs non premium */}
+        {!subscribed && (
+          <Card className="mt-8 bg-gradient-primary text-primary-foreground">
+            <CardContent className="p-8 text-center">
+              <Crown className="w-12 h-12 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-4">Débloquez plus de contes !</h3>
+              <p className="text-lg mb-6">
+                Accédez à tous nos contes premium, fonctionnalités IA et contenu exclusif.
+              </p>
+              <Button asChild variant="secondary">
+                <Link to="/premium">
+                  Découvrir Premium
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

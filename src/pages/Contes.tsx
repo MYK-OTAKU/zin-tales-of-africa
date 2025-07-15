@@ -4,10 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlayCircle, Search, Clock, Crown, Star } from "lucide-react";
+import { PlayCircle, Search, Clock, Crown, Star, Heart, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useContes } from "@/hooks/useContes";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
-// Import des images des contes
+// Import des images par défaut
 import araigneeElephantImg from "@/assets/conte-araignee-elephant.jpg";
 import lionSourisImg from "@/assets/conte-lion-souris.jpg";
 import princesseEauxImg from "@/assets/conte-princesse-eaux.jpg";
@@ -15,75 +19,24 @@ import griotFilsImg from "@/assets/conte-griot-fils.jpg";
 import baobabMagiqueImg from "@/assets/conte-baobab-magique.jpg";
 import chasseurEspritImg from "@/assets/conte-chasseur-esprit.jpg";
 
-// Mock data pour les contes
-const contes = [
-  {
-    id: 1,
-    titre: "L'Araignée et l'Éléphant",
-    description: "Une histoire sur la ruse et l'intelligence face à la force brute.",
-    categorie: "Sagesse",
-    duree: "8 min",
-    isPremium: false,
-    imageUrl: araigneeElephantImg,
-    langues: ["français", "bambara"]
-  },
-  {
-    id: 2,
-    titre: "Le Lion et la Petite Souris",
-    description: "Conte sur l'amitié improbable et l'entraide entre les animaux.",
-    categorie: "Amitié",
-    duree: "6 min",
-    isPremium: false,
-    imageUrl: lionSourisImg,
-    langues: ["français", "bambara"]
-  },
-  {
-    id: 3,
-    titre: "La Princesse des Eaux",
-    description: "L'histoire mystique d'une princesse qui règne sur les rivières.",
-    categorie: "Mystique",
-    duree: "12 min",
-    isPremium: true,
-    imageUrl: princesseEauxImg,
-    langues: ["français", "bambara"]
-  },
-  {
-    id: 4,
-    titre: "Le Griot et ses Trois Fils",
-    description: "Une leçon sur l'héritage culturel et la transmission du savoir.",
-    categorie: "Famille",
-    duree: "10 min",
-    isPremium: true,
-    imageUrl: griotFilsImg,
-    langues: ["français", "bambara"]
-  },
-  {
-    id: 5,
-    titre: "Le Baobab Magique",
-    description: "L'arbre sacré qui exauce les vœux des cœurs purs.",
-    categorie: "Magie",
-    duree: "9 min",
-    isPremium: false,
-    imageUrl: baobabMagiqueImg,
-    langues: ["français", "bambara"]
-  },
-  {
-    id: 6,
-    titre: "Le Chasseur et l'Esprit de la Forêt",
-    description: "Une aventure sur le respect de la nature et ses mystères.",
-    categorie: "Aventure",
-    duree: "14 min",
-    isPremium: true,
-    imageUrl: chasseurEspritImg,
-    langues: ["français", "bambara"]
-  }
-];
+// Images par défaut par catégorie
+const defaultImages: { [key: string]: string } = {
+  "Sagesse": araigneeElephantImg,
+  "Amitié": lionSourisImg,
+  "Mystique": princesseEauxImg,
+  "Famille": griotFilsImg,
+  "Magie": baobabMagiqueImg,
+  "Aventure": chasseurEspritImg
+};
 
 const categories = ["Toutes", "Sagesse", "Amitié", "Mystique", "Famille", "Magie", "Aventure"];
 
 const Contes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
+  const { user } = useAuth();
+  const { subscribed } = useSubscription();
+  const { contes, loading, canAccessConte, getAccessMessage } = useContes();
 
   const filteredContes = contes.filter(conte => {
     const matchesSearch = conte.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,6 +44,14 @@ const Contes = () => {
     const matchesCategory = selectedCategory === "Toutes" || conte.categorie === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleConteClick = (conte: any) => {
+    const accessMessage = getAccessMessage(conte);
+    if (accessMessage) {
+      toast.error(accessMessage);
+      return;
+    }
+  };
 
   const getCategoryColor = (categorie: string) => {
     const colors: { [key: string]: string } = {
@@ -143,69 +104,124 @@ const Contes = () => {
         </div>
 
         {/* Contes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredContes.map((conte) => (
-            <Card key={conte.id} className="group hover:shadow-warm transition-all duration-300 overflow-hidden">
-              <div className="relative">
-                <img 
-                  src={conte.imageUrl} 
-                  alt={conte.titre}
-                  className="w-full h-48 object-cover"
-                />
-                {conte.isPremium && (
-                  <Crown className="absolute top-3 right-3 h-6 w-6 text-secondary fill-current" />
-                )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <Button asChild variant="secondary" size="sm">
-                    <Link to={`/conte/${conte.id}`}>
-                      <PlayCircle className="mr-2 h-4 w-4" />
-                      Écouter
-                    </Link>
-                  </Button>
-                </div>
-              </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden animate-pulse">
+                <div className="h-48 bg-muted"></div>
+                <CardHeader>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-3/4"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-3 bg-muted rounded mb-4"></div>
+                  <div className="flex justify-between">
+                    <div className="h-3 bg-muted rounded w-16"></div>
+                    <div className="h-3 bg-muted rounded w-12"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredContes.map((conte) => {
+              const isAccessible = canAccessConte(conte);
+              const imageUrl = conte.image_url || defaultImages[conte.categorie] || araigneeElephantImg;
               
-              <CardHeader>
-                <div className="flex items-start justify-between mb-2">
-                  <CardTitle className="text-lg leading-tight">{conte.titre}</CardTitle>
-                  {conte.isPremium && (
-                    <Badge variant="secondary" className="ml-2">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Premium
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription>{conte.description}</CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <div className="flex items-center justify-between mb-4">
-                  <Badge className={getCategoryColor(conte.categorie)}>
-                    {conte.categorie}
-                  </Badge>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {conte.duree}
+              return (
+                <Card key={conte.id} className={`group hover:shadow-warm transition-all duration-300 overflow-hidden ${!isAccessible ? 'opacity-75' : ''}`}>
+                  <div className="relative">
+                    <img 
+                      src={imageUrl} 
+                      alt={conte.titre}
+                      className="w-full h-48 object-cover"
+                    />
+                    {conte.is_premium && (
+                      <Crown className="absolute top-3 right-3 h-6 w-6 text-secondary fill-current" />
+                    )}
+                    {!isAccessible && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <Lock className="w-8 h-8 mx-auto mb-2" />
+                          <p className="text-sm font-medium">Premium</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center ${!isAccessible ? 'hidden' : ''}`}>
+                      <Button asChild variant="secondary" size="sm">
+                        <Link to={`/conte/${conte.id}`}>
+                          <PlayCircle className="mr-2 h-4 w-4" />
+                          Écouter
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                  
+                  <CardHeader>
+                    <div className="flex items-start justify-between mb-2">
+                      <CardTitle className="text-lg leading-tight">{conte.titre}</CardTitle>
+                      {conte.is_premium && (
+                        <Badge variant="secondary" className="ml-2">
+                          <Crown className="w-3 h-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription>{conte.description}</CardDescription>
+                  </CardHeader>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1">
-                    {conte.langues.map((langue) => (
-                      <Badge key={langue} variant="outline" className="text-xs">
-                        {langue}
+                  <CardContent>
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge className={getCategoryColor(conte.categorie)}>
+                        {conte.categorie}
                       </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 text-secondary fill-current" />
-                    <span className="text-sm text-muted-foreground ml-1">4.8</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {conte.duree_minutes} min
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-1">
+                        {conte.langues.map((langue) => (
+                          <Badge key={langue} variant="outline" className="text-xs">
+                            {langue}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-secondary fill-current" />
+                          <span className="text-sm text-muted-foreground ml-1">4.8</span>
+                        </div>
+                        {user && isAccessible && (
+                          <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                            <Heart className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {!isAccessible && (
+                      <div className="mt-3 pt-3 border-t">
+                        <Button 
+                          onClick={handleConteClick}
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                        >
+                          <Lock className="w-3 h-3 mr-2" />
+                          Débloquer avec Premium
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {filteredContes.length === 0 && (
           <div className="text-center py-12">

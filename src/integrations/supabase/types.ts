@@ -14,6 +14,146 @@ export type Database = {
   }
   public: {
     Tables: {
+      conte_pages: {
+        Row: {
+          audio_bambara_url: string | null
+          audio_fr_url: string | null
+          conte_id: string
+          contenu: string
+          created_at: string
+          id: string
+          image_url: string | null
+          numero_page: number
+          updated_at: string
+        }
+        Insert: {
+          audio_bambara_url?: string | null
+          audio_fr_url?: string | null
+          conte_id: string
+          contenu: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          numero_page: number
+          updated_at?: string
+        }
+        Update: {
+          audio_bambara_url?: string | null
+          audio_fr_url?: string | null
+          conte_id?: string
+          contenu?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          numero_page?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conte_pages_conte_id_fkey"
+            columns: ["conte_id"]
+            isOneToOne: false
+            referencedRelation: "contes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contes: {
+        Row: {
+          actif: boolean
+          audio_bambara_url: string | null
+          audio_fr_url: string | null
+          categorie: string
+          created_at: string
+          description: string
+          duree_minutes: number
+          id: string
+          image_url: string | null
+          is_premium: boolean
+          langues: string[]
+          morale: string | null
+          ordre_affichage: number | null
+          titre: string
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          audio_bambara_url?: string | null
+          audio_fr_url?: string | null
+          categorie: string
+          created_at?: string
+          description: string
+          duree_minutes: number
+          id?: string
+          image_url?: string | null
+          is_premium?: boolean
+          langues?: string[]
+          morale?: string | null
+          ordre_affichage?: number | null
+          titre: string
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          audio_bambara_url?: string | null
+          audio_fr_url?: string | null
+          categorie?: string
+          created_at?: string
+          description?: string
+          duree_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_premium?: boolean
+          langues?: string[]
+          morale?: string | null
+          ordre_affichage?: number | null
+          titre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      devinettes: {
+        Row: {
+          actif: boolean
+          categorie: string
+          created_at: string
+          difficulte: string
+          id: string
+          indice: string | null
+          is_premium: boolean
+          points: number
+          question: string
+          reponse: string
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          categorie: string
+          created_at?: string
+          difficulte: string
+          id?: string
+          indice?: string | null
+          is_premium?: boolean
+          points?: number
+          question: string
+          reponse: string
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          categorie?: string
+          created_at?: string
+          difficulte?: string
+          id?: string
+          indice?: string | null
+          is_premium?: boolean
+          points?: number
+          question?: string
+          reponse?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -76,6 +216,95 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_activities: {
+        Row: {
+          conte_id: string | null
+          created_at: string
+          devinette_id: string | null
+          id: string
+          points_gagnes: number | null
+          type_activite: string
+          user_id: string
+        }
+        Insert: {
+          conte_id?: string | null
+          created_at?: string
+          devinette_id?: string | null
+          id?: string
+          points_gagnes?: number | null
+          type_activite: string
+          user_id: string
+        }
+        Update: {
+          conte_id?: string | null
+          created_at?: string
+          devinette_id?: string | null
+          id?: string
+          points_gagnes?: number | null
+          type_activite?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activities_conte_id_fkey"
+            columns: ["conte_id"]
+            isOneToOne: false
+            referencedRelation: "contes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activities_devinette_id_fkey"
+            columns: ["devinette_id"]
+            isOneToOne: false
+            referencedRelation: "devinettes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_conte_progress: {
+        Row: {
+          conte_id: string
+          created_at: string
+          derniere_ecoute: string | null
+          derniere_page: number
+          favori: boolean
+          id: string
+          termine: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conte_id: string
+          created_at?: string
+          derniere_ecoute?: string | null
+          derniere_page?: number
+          favori?: boolean
+          id?: string
+          termine?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conte_id?: string
+          created_at?: string
+          derniere_ecoute?: string | null
+          derniere_page?: number
+          favori?: boolean
+          id?: string
+          termine?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_conte_progress_conte_id_fkey"
+            columns: ["conte_id"]
+            isOneToOne: false
+            referencedRelation: "contes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_points: {
         Row: {
