@@ -99,11 +99,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-     const netlifyAppUrl = 'https://zirin.netlify.app'; // <--- MODIFIEZ CETTE LIGNE
-
-    // Vous pouvez aussi ajouter un chemin spécifique après la connexion, ex: '/dashboard'
-    const redirectToUrl = `${netlifyAppUrl}/`; // Ou simplement `${netlifyAppUrl}/`
-
+    // Détecter l'environnement
+    const isProduction = window.location.hostname === 'zirin.netlify.app';
+    const redirectToUrl = isProduction 
+      ? 'https://zirin.netlify.app/' 
+      : window.location.origin + '/';
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

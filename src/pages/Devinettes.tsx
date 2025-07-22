@@ -76,12 +76,23 @@ const Devinettes = () => {
     { id: '19', question: 'Je nais de la terre mais appartiens au ciel, qui suis-je ?', reponse: 'ancêtre', indice: 'Entre deux mondes', categorie: 'Spiritualité', difficulte: 'expert', points: 30, is_premium: true },
     { id: '20', question: 'Je suis le silence qui parle le plus fort, qui suis-je ?', reponse: 'respect', indice: 'Vertu suprême', categorie: 'Valeurs', difficulte: 'expert', points: 35, is_premium: true },
     
-    // Devinettes bonus
+    // Devinettes bonus (11 supplémentaires pour atteindre 36 au total)
     { id: '21', question: 'Je grandis en me cassant, qui suis-je ?', reponse: 'noix de karité', indice: 'Trésor des femmes', categorie: 'Nature', difficulte: 'moyen', points: 12, is_premium: false },
     { id: '22', question: 'Je porte le village sur mon dos, qui suis-je ?', reponse: 'femme', indice: 'Pilier de la famille', categorie: 'Société', difficulte: 'difficile', points: 20, is_premium: true },
     { id: '23', question: 'Je suis né d\'argile mais je vis éternellement, qui suis-je ?', reponse: 'masque', indice: 'Visage des esprits', categorie: 'Art', difficulte: 'difficile', points: 18, is_premium: true },
     { id: '24', question: 'Je rythme la vie sans jamais me tromper, qui suis-je ?', reponse: 'saison', indice: 'Calendrier naturel', categorie: 'Nature', difficulte: 'moyen', points: 10, is_premium: false },
-    { id: '25', question: 'Je suis la richesse du pauvre et la pauvreté du riche, qui suis-je ?', reponse: 'travail', indice: 'Valeur universelle', categorie: 'Valeurs', difficulte: 'difficile', points: 22, is_premium: true }
+    { id: '25', question: 'Je suis la richesse du pauvre et la pauvreté du riche, qui suis-je ?', reponse: 'travail', indice: 'Valeur universelle', categorie: 'Valeurs', difficulte: 'difficile', points: 22, is_premium: true },
+    { id: '26', question: 'Je danse sans pieds, qui suis-je ?', reponse: 'ombre', indice: 'Compagne fidèle', categorie: 'Nature', difficulte: 'facile', points: 6, is_premium: false },
+    { id: '27', question: 'Je mange le fer mais ne grossis jamais, qui suis-je ?', reponse: 'rouille', indice: 'Ennemi du forgeron', categorie: 'Nature', difficulte: 'moyen', points: 12, is_premium: false },
+    { id: '28', question: 'Je suis la voix des morts, qui suis-je ?', reponse: 'tambour', indice: 'Instrument sacré', categorie: 'Musique', difficulte: 'difficile', points: 18, is_premium: true },
+    { id: '29', question: 'Je lie les générations sans chaîne, qui suis-je ?', reponse: 'nom', indice: 'Héritage familial', categorie: 'Généalogie', difficulte: 'expert', points: 28, is_premium: true },
+    { id: '30', question: 'Je suis l\'eau qui ne mouille pas, qui suis-je ?', reponse: 'larme', indice: 'Expression de l\'émotion', categorie: 'Émotion', difficulte: 'moyen', points: 14, is_premium: false },
+    { id: '31', question: 'Je porte la force de mille hommes dans mes bras, qui suis-je ?', reponse: 'fleuve', indice: 'Artère de la terre', categorie: 'Nature', difficulte: 'difficile', points: 20, is_premium: true },
+    { id: '32', question: 'Je suis né du feu mais je vis dans l\'eau, qui suis-je ?', reponse: 'sel', indice: 'Blanc trésor', categorie: 'Minéral', difficulte: 'expert', points: 30, is_premium: true },
+    { id: '33', question: 'Je vole sans ailes, je cours sans jambes, qui suis-je ?', reponse: 'nuage', indice: 'Berger du ciel', categorie: 'Nature', difficulte: 'facile', points: 7, is_premium: false },
+    { id: '34', question: 'Je suis la force qui unit les pierres, qui suis-je ?', reponse: 'mortier', indice: 'Lien du maçon', categorie: 'Construction', difficulte: 'moyen', points: 13, is_premium: false },
+    { id: '35', question: 'Je garde les secrets du village sans parler, qui suis-je ?', reponse: 'puits', indice: 'Mémoire de l\'eau', categorie: 'Infrastructure', difficulte: 'difficile', points: 19, is_premium: true },
+    { id: '36', question: 'Je suis l\'éternité dans l\'instant, qui suis-je ?', reponse: 'amour', indice: 'Sentiment universel', categorie: 'Émotion', difficulte: 'expert', points: 35, is_premium: true }
   ]);
   
   const [currentDevIndex, setCurrentDevIndex] = useState(0);
@@ -149,13 +160,33 @@ const Devinettes = () => {
     }
   };
   
+  // Fonction pour normaliser les réponses
+  const normalizeText = (text: string): string => {
+    return text
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+      .replace(/[^a-z0-9\s]/g, '') // Enlever la ponctuation
+      .replace(/\s+/g, ' ') // Normaliser les espaces
+      .replace(/\b(le|la|les|un|une|des|du|de|d)\b/g, '') // Enlever les articles
+      .trim();
+  };
+
   const handleSubmitAnswer = () => {
     if (!userAnswer.trim()) {
       toast.error("Veuillez entrer une réponse");
       return;
     }
     
-    const isCorrect = userAnswer.toLowerCase().trim() === currentDevinette.reponse.toLowerCase();
+    const normalizedAnswer = normalizeText(userAnswer);
+    const normalizedCorrectAnswer = normalizeText(currentDevinette.reponse);
+    
+    // Vérifier correspondance exacte ou similitude élevée
+    const isCorrect = normalizedAnswer === normalizedCorrectAnswer || 
+                     normalizedAnswer.includes(normalizedCorrectAnswer) ||
+                     normalizedCorrectAnswer.includes(normalizedAnswer);
+    
     setAnsweredCorrectly(isCorrect);
     setShowAnswer(true);
     

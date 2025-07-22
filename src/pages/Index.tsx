@@ -82,9 +82,9 @@ const Index = () => {
   ];
 
   const stats = [
-    { number: contesGratuits + contesPremium, label: "Contes disponibles", icon: <BookOpen className="h-5 w-5" /> },
+    { number: contesGratuits + contesPremium || 20, label: "Contes disponibles", icon: <BookOpen className="h-5 w-5" /> },
     { number: "2", label: "Langues", icon: <Globe className="h-5 w-5" /> },
-    { number: "25+", label: "Devinettes", icon: <HelpCircle className="h-5 w-5" /> },
+    { number: "36+", label: "Devinettes", icon: <HelpCircle className="h-5 w-5" /> },
     { number: "100%", label: "Authenticité", icon: <Heart className="h-5 w-5" /> }
   ];
 

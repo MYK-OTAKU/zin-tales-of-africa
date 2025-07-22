@@ -24,6 +24,7 @@ import { Link } from "react-router-dom";
 import { useContes } from "@/hooks/useContes";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useFavorites } from "@/hooks/useFavorites";
 import { generateConteAudioData } from "@/lib/audioUtils";
 import { toast } from "sonner";
 
@@ -47,7 +48,8 @@ const defaultImages: { [key: string]: string } = {
 
 const categories = ["Toutes", "Sagesse", "Amitié", "Mystique", "Famille", "Magie", "Aventure"];
 
-const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMessage }: any) => {
+const ConteCard = ({ conte, onPlay, canAccess, accessMessage }: any) => {
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAudioPreview, setShowAudioPreview] = useState(false);
   const audioData = generateConteAudioData(conte);
@@ -67,9 +69,9 @@ const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMes
     onPlay(conte);
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onFavorite(conte.id);
+    await toggleFavorite(conte.id);
   };
 
   return (
@@ -104,7 +106,7 @@ const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMes
               onClick={handleFavoriteClick}
               className="ml-2 hover:bg-red-100"
             >
-              <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                             <Heart className={`h-4 w-4 ${isFavorite(conte.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
             </Button>
           </div>
         </CardHeader>
@@ -214,10 +216,9 @@ const Contes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
   const [sortBy, setSortBy] = useState("ordre");
-  const [favorites, setFavorites] = useState<string[]>([]);
   const { user } = useAuth();
   const { subscribed } = useSubscription();
-  const { contes, loading, canAccessConte, getAccessMessage, toggleFavorite } = useContes();
+  const { contes, loading, canAccessConte, getAccessMessage } = useContes();
 
   // Filtrer et trier les contes
   const filteredContes = contes
@@ -248,23 +249,7 @@ const Contes = () => {
     toast.success(`Lecture de "${conte.titre}" démarrée`);
   };
 
-  const handleFavorite = async (conteId: string) => {
-    if (!user) {
-      toast.error("Connectez-vous pour ajouter aux favoris");
-      return;
-    }
-    
-    try {
-      const newFavoriteStatus = await toggleFavorite(conteId);
-      if (newFavoriteStatus) {
-        setFavorites(prev => [...prev, conteId]);
-      } else {
-        setFavorites(prev => prev.filter(id => id !== conteId));
-      }
-    } catch (error) {
-      console.error('Erreur toggle favorite:', error);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -371,8 +356,6 @@ const Contes = () => {
                   key={conte.id}
                   conte={conte}
                   onPlay={handlePlay}
-                  onFavorite={handleFavorite}
-                  isFavorite={favorites.includes(conte.id)}
                   canAccess={canAccessConte(conte)}
                   accessMessage={getAccessMessage(conte)}
                 />
@@ -421,19 +404,17 @@ const Contes = () => {
               </div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {contesPremium.map(conte => (
-                <ConteCard
-                  key={conte.id}
-                  conte={conte}
-                  onPlay={handlePlay}
-                  onFavorite={handleFavorite}
-                  isFavorite={favorites.includes(conte.id)}
-                  canAccess={canAccessConte(conte)}
-                  accessMessage={getAccessMessage(conte)}
-                />
-              ))}
-            </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {contesPremium.map(conte => (
+                 <ConteCard
+                   key={conte.id}
+                   conte={conte}
+                   onPlay={handlePlay}
+                   canAccess={canAccessConte(conte)}
+                   accessMessage={getAccessMessage(conte)}
+                 />
+               ))}
+             </div>
           </div>
         )}
 

@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useContes } from "@/hooks/useContes";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -27,6 +29,8 @@ import {
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { subscribed, subscription_tier, subscription_end, loading, checkSubscription, manageSubscription } = useSubscription();
+  const { getFavoritesCount, getFavoritesList } = useFavorites();
+  const { contes } = useContes();
   const { toast } = useToast();
   
   const [profile, setProfile] = useState({
@@ -299,6 +303,14 @@ const Profile = () => {
                   <Separator />
 
                   <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Contes favoris</span>
+                      <span className="text-sm font-medium text-red-600">❤️ {getFavoritesCount()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Contes disponibles</span>
+                      <span className="text-sm font-medium">{contes.length}</span>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Contes lus</span>
                       <span className="text-sm font-medium">-</span>

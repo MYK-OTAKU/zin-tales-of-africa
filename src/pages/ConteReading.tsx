@@ -37,6 +37,7 @@ import {
 import { useContes, type Conte, type ContePage } from "@/hooks/useContes";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { AudioManager, generateConteAudioData, useAudioTextSync } from "@/lib/audioUtils";
 import { toast } from "sonner";
@@ -95,11 +96,11 @@ const ConteReading = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { subscribed } = useSubscription();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const { 
     fetchContePages, 
     fetchUserProgress, 
     updateUserProgress, 
-    toggleFavorite, 
     canAccessConte, 
     getAccessMessage 
   } = useContes();
@@ -110,7 +111,6 @@ const ConteReading = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState<"page" | "continu">("page");
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
   // États audio
@@ -170,7 +170,6 @@ const ConteReading = () => {
           const progress = await fetchUserProgress(id);
           if (progress) {
             setCurrentPage(progress.derniere_page - 1);
-            setIsFavorite(progress.favori);
           }
         }
 
@@ -257,8 +256,7 @@ const ConteReading = () => {
       await updateUserProgress(
         conte.id, 
         pageIndex + 1, 
-        pageIndex === pages.length - 1,
-        isFavorite
+        pageIndex === pages.length - 1
       );
     } catch (error) {
       console.error('Erreur mise à jour progrès:', error);
@@ -272,12 +270,7 @@ const ConteReading = () => {
       return;
     }
     
-    try {
-      const newStatus = await toggleFavorite(conte.id);
-      setIsFavorite(newStatus);
-    } catch (error) {
-      console.error('Erreur toggle favorite:', error);
-    }
+    await toggleFavorite(conte.id);
   };
 
   // Formatage du temps
