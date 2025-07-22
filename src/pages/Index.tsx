@@ -25,6 +25,14 @@ import {
   User
 } from "lucide-react";
 
+// Import des images
+import araigneeElephantImg from "@/assets/conte-araignee-elephant.jpg";
+import lionSourisImg from "@/assets/conte-lion-souris.jpg";
+import princesseEauxImg from "@/assets/conte-princesse-eaux.jpg";
+import griotFilsImg from "@/assets/conte-griot-fils.jpg";
+import baobabMagiqueImg from "@/assets/conte-baobab-magique.jpg";
+import chasseurEspritImg from "@/assets/conte-chasseur-esprit.jpg";
+
 const Index = () => {
   const { user } = useAuth();
   const { subscribed, subscription_tier } = useSubscription();
@@ -76,8 +84,36 @@ const Index = () => {
   const stats = [
     { number: contesGratuits + contesPremium, label: "Contes disponibles", icon: <BookOpen className="h-5 w-5" /> },
     { number: "2", label: "Langues", icon: <Globe className="h-5 w-5" /> },
-    { number: "15+", label: "Devinettes", icon: <HelpCircle className="h-5 w-5" /> },
+    { number: "25+", label: "Devinettes", icon: <HelpCircle className="h-5 w-5" /> },
     { number: "100%", label: "Authenticité", icon: <Heart className="h-5 w-5" /> }
+  ];
+
+  // Contes d'exemple avec vraies images
+  const contesApercu = [
+    { 
+      title: "L'Araignée et l'Éléphant", 
+      category: "Sagesse", 
+      duration: 8, 
+      premium: false,
+      image: araigneeElephantImg,
+      id: "araignee-elephant"
+    },
+    { 
+      title: "La Princesse des Eaux", 
+      category: "Mystique", 
+      duration: 12, 
+      premium: true,
+      image: princesseEauxImg,
+      id: "princesse-eaux"
+    },
+    { 
+      title: "Le Baobab Magique", 
+      category: "Magie", 
+      duration: 9, 
+      premium: false,
+      image: baobabMagiqueImg,
+      id: "baobab-magique"
+    }
   ];
 
   return (
@@ -112,13 +148,13 @@ const Index = () => {
                     Rejoignez notre communauté et explorez l'héritage oral du Mali
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-semibold">
+                    <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-semibold shadow-lg">
                       <Link to="/auth">
                         <Users className="h-5 w-5 mr-2" />
                         Créer un compte gratuit
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                    <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-orange-600 transition-all">
                       <Link to="/contes">
                         <BookOpen className="h-5 w-5 mr-2" />
                         Explorer les contes
@@ -153,13 +189,13 @@ const Index = () => {
                         Profitez de votre accès illimité à tous nos contes premium et fonctionnalités exclusives
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 font-semibold">
+                        <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 font-semibold shadow-lg">
                           <Link to="/contes">
                             <BookOpen className="h-5 w-5 mr-2" />
                             Continuer la lecture
                           </Link>
                         </Button>
-                        <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                        <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-emerald-600 transition-all">
                           <Link to="/profile">
                             <User className="h-5 w-5 mr-2" />
                             Mon profil
@@ -173,13 +209,13 @@ const Index = () => {
                         Vous avez accès à {contesGratuits} contes gratuits. Découvrez {contesPremium} contes premium supplémentaires !
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100 font-semibold">
+                        <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100 font-semibold shadow-lg">
                           <Link to="/contes">
                             <BookOpen className="h-5 w-5 mr-2" />
                             Explorer les contes
                           </Link>
                         </Button>
-                        <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                        <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-blue-600 transition-all">
                           <Link to="/premium">
                             <TrendingUp className="h-5 w-5 mr-2" />
                             Devenir Premium
@@ -265,7 +301,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Section Aperçu Contes (pour tous) */}
+      {/* Section Aperçu Contes avec vraies images */}
       <section className="py-16 bg-gradient-to-b from-orange-50 to-amber-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -279,27 +315,35 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {/* Exemple de cartes de contes */}
-            {[
-              { title: "L'Araignée et l'Éléphant", category: "Sagesse", duration: 8, premium: false },
-              { title: "La Princesse des Eaux", category: "Mystique", duration: 12, premium: true },
-              { title: "Le Baobab Magique", category: "Magie", duration: 9, premium: false }
-            ].map((conte, index) => (
-              <Card key={index} className={`overflow-hidden hover:shadow-lg transition-shadow ${
+            {contesApercu.map((conte, index) => (
+              <Card key={index} className={`group overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
                 conte.premium ? 'border-amber-200' : 'border-orange-200'
-              }`}>
-                <div className="h-32 bg-gradient-to-br from-orange-200 to-amber-200 relative">
+              }`}
+              onClick={() => window.location.href = `/conte-reading/${conte.id}`}>
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={conte.image} 
+                    alt={conte.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
                   {conte.premium && (
-                    <div className="absolute top-2 right-2">
-                      <Crown className="h-5 w-5 text-amber-600" />
+                    <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-2 rounded-full shadow-lg">
+                      <Crown className="h-4 w-4" />
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <Button size="lg" className="bg-white/90 hover:bg-white text-orange-600 hover:text-orange-700 rounded-full shadow-lg">
+                      <Play className="h-6 w-6" />
+                    </Button>
+                  </div>
                 </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-800 mb-2">{conte.title}</h3>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <Badge variant="outline">{conte.category}</Badge>
-                    <span className="flex items-center gap-1">
+                <CardContent className="p-6">
+                  <h3 className="font-bold text-xl text-gray-800 mb-2 group-hover:text-orange-600 transition-colors">{conte.title}</h3>
+                  <div className="flex items-center justify-between text-sm">
+                    <Badge variant="outline" className={`${conte.premium ? 'border-amber-300 text-amber-700' : 'border-orange-300 text-orange-700'}`}>
+                      {conte.category}
+                    </Badge>
+                    <span className="flex items-center gap-1 text-gray-600">
                       <Clock className="h-3 w-3" />
                       {conte.duration} min
                     </span>
@@ -310,7 +354,7 @@ const Index = () => {
           </div>
 
           <div className="text-center">
-            <Button asChild size="lg" className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+            <Button asChild size="lg" className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg">
               <Link to="/contes">
                 <BookOpen className="h-5 w-5 mr-2" />
                 Voir tous les contes
@@ -333,14 +377,14 @@ const Index = () => {
               Accédez à tous nos contes premium, fonctionnalités IA et contenus exclusifs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-semibold">
+              <Button asChild size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-semibold shadow-lg">
                 <Link to="/premium">
                   <TrendingUp className="h-5 w-5 mr-2" />
                   Découvrir Premium
                 </Link>
               </Button>
               {!user && (
-                <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-orange-600 transition-all">
                   <Link to="/auth">
                     <Users className="h-5 w-5 mr-2" />
                     Créer un compte

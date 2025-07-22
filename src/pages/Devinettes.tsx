@@ -1,311 +1,532 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Lightbulb, Trophy, Star, Eye, EyeOff, CheckCircle, XCircle, Coins } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { 
+  HelpCircle, 
+  Lightbulb, 
+  CheckCircle, 
+  XCircle, 
+  Star, 
+  Trophy, 
+  Target,
+  Crown,
+  Zap,
+  Sparkles,
+  Gift,
+  Award,
+  TrendingUp,
+  Brain,
+  Lock,
+  Unlock,
+  Timer,
+  Heart,
+  Flame,
+  ArrowRight
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
-// Mock data pour les devinettes
-const devinettes = [
-  {
-    id: 1,
-    question: "Je suis grand et fort, mais j'ai peur des souris. Qui suis-je ?",
-    reponse: "Un éléphant",
-    difficulte: "Facile",
-    points: 10,
-    indice: "Je vis en Afrique et j'ai une trompe.",
-    categorie: "Animaux"
-  },
-  {
-    id: 2,
-    question: "Je n'ai pas de jambes mais je cours toujours. Que suis-je ?",
-    reponse: "Une rivière",
-    difficulte: "Moyen",
-    points: 15,
-    indice: "Je coule vers la mer.",
-    categorie: "Nature"
-  },
-  {
-    id: 3,
-    question: "Plus tu me donnes, plus je grandis. Mais plus tu me retires, plus je rapetisse. Que suis-je ?",
-    reponse: "Un trou",
-    difficulte: "Difficile",
-    points: 25,
-    indice: "On peut y tomber dedans.",
-    categorie: "Logique"
-  },
-  {
-    id: 4,
-    question: "Je chante sans voix, je vole sans ailes. Que suis-je ?",
-    reponse: "L'écho",
-    difficulte: "Moyen",
-    points: 15,
-    indice: "Tu m'entends dans les montagnes.",
-    categorie: "Phénomènes"
-  },
-  {
-    id: 5,
-    question: "Je suis invisible mais tout le monde me cherche. Que suis-je ?",
-    reponse: "Le bonheur",
-    difficulte: "Difficile",
-    points: 25,
-    indice: "Tout le monde en veut.",
-    categorie: "Philosophie"
-  }
-];
+interface Devinette {
+  id: string;
+  question: string;
+  reponse: string;
+  indice: string;
+  categorie: string;
+  difficulte: 'facile' | 'moyen' | 'difficile' | 'expert';
+  points: number;
+  is_premium: boolean;
+  explication?: string;
+}
 
 const Devinettes = () => {
-  const [currentDevinette, setCurrentDevinette] = useState(0);
+  const { user } = useAuth();
+  const { subscribed } = useSubscription();
+  
+  const [devinettes] = useState<Devinette[]>([
+    // Devinettes Faciles (Gratuit)
+    { id: '1', question: 'Je suis grand et gris, j\'ai une trompe, qui suis-je ?', reponse: 'éléphant', indice: 'Je vis en Afrique et j\'aime l\'eau', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false, explication: 'L\'éléphant est le plus grand mammifère terrestre d\'Afrique.' },
+    { id: '2', question: 'Je tisse ma maison avec du fil, qui suis-je ?', reponse: 'araignée', indice: 'Je mange les mouches', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false, explication: 'L\'araignée tisse sa toile pour capturer ses proies.' },
+    { id: '3', question: 'Je coule sans jamais m\'arrêter, qui suis-je ?', reponse: 'rivière', indice: 'Les poissons nagent en moi', categorie: 'Nature', difficulte: 'facile', points: 5, is_premium: false, explication: 'La rivière est un cours d\'eau naturel.' },
+    { id: '4', question: 'Je brille la nuit et éclaire le chemin, qui suis-je ?', reponse: 'lune', indice: 'Je change de forme chaque nuit', categorie: 'Nature', difficulte: 'facile', points: 5, is_premium: false },
+    { id: '5', question: 'Je suis roi de la savane, qui suis-je ?', reponse: 'lion', indice: 'J\'ai une crinière majestueuse', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false },
+    { id: '6', question: 'Je donne de l\'ombre au village, qui suis-je ?', reponse: 'baobab', indice: 'Je suis un arbre sacré', categorie: 'Nature', difficulte: 'facile', points: 8, is_premium: false },
+    
+    // Devinettes Moyennes (Gratuit)
+    { id: '7', question: 'Je raconte les histoires du village, qui suis-je ?', reponse: 'griot', indice: 'Je joue de la musique', categorie: 'Culture', difficulte: 'moyen', points: 10, is_premium: false, explication: 'Le griot est le gardien de la tradition orale en Afrique de l\'Ouest.' },
+    { id: '8', question: 'Plus je suis vieux, plus je suis respecté au village, qui suis-je ?', reponse: 'sage', indice: 'J\'ai beaucoup d\'expérience', categorie: 'Culture', difficulte: 'moyen', points: 10, is_premium: false },
+    { id: '9', question: 'Je nourris tout le village mais ne mange jamais, qui suis-je ?', reponse: 'mil', indice: 'Je pousse dans les champs', categorie: 'Agriculture', difficulte: 'moyen', points: 10, is_premium: false },
+    { id: '10', question: 'Je protège la maison mais n\'ai pas de murs, qui suis-je ?', reponse: 'esprit', indice: 'Les ancêtres veillent', categorie: 'Spiritualité', difficulte: 'moyen', points: 12, is_premium: false },
+    
+    // Devinettes Difficiles (Premium)
+    { id: '11', question: 'Je lie les familles sans être vu, qui suis-je ?', reponse: 'totém', indice: 'Chaque clan a le sien', categorie: 'Culture', difficulte: 'difficile', points: 15, is_premium: true, explication: 'Le totém est l\'animal protecteur d\'un clan.' },
+    { id: '12', question: 'Je parle sans voix, je enseigne sans école, qui suis-je ?', reponse: 'proverbe', indice: 'La sagesse des anciens', categorie: 'Culture', difficulte: 'difficile', points: 15, is_premium: true },
+    { id: '13', question: 'Je suis la richesse qui ne se compte pas, qui suis-je ?', reponse: 'honneur', indice: 'Plus précieux que l\'or', categorie: 'Valeurs', difficulte: 'difficile', points: 18, is_premium: true },
+    { id: '14', question: 'Je unifie les villages sans être chef, qui suis-je ?', reponse: 'marché', indice: 'Le lieu des échanges', categorie: 'Société', difficulte: 'difficile', points: 15, is_premium: true },
+    { id: '15', question: 'Je guéris sans médicament, qui suis-je ?', reponse: 'parole', indice: 'La force des mots justes', categorie: 'Spiritualité', difficulte: 'difficile', points: 20, is_premium: true },
+    
+    // Devinettes Expert (Premium)
+    { id: '16', question: 'Je suis le premier et le dernier de chaque génération, qui suis-je ?', reponse: 'nom', indice: 'Héritage ancestral', categorie: 'Généalogie', difficulte: 'expert', points: 25, is_premium: true },
+    { id: '17', question: 'Je traverse les siècles sans vieillir, qui suis-je ?', reponse: 'tradition', indice: 'Transmise de père en fils', categorie: 'Culture', difficulte: 'expert', points: 25, is_premium: true },
+    { id: '18', question: 'Je suis invisible mais plus fort que le fer, qui suis-je ?', reponse: 'serment', indice: 'Lien sacré entre hommes', categorie: 'Valeurs', difficulte: 'expert', points: 30, is_premium: true },
+    { id: '19', question: 'Je nais de la terre mais appartiens au ciel, qui suis-je ?', reponse: 'ancêtre', indice: 'Entre deux mondes', categorie: 'Spiritualité', difficulte: 'expert', points: 30, is_premium: true },
+    { id: '20', question: 'Je suis le silence qui parle le plus fort, qui suis-je ?', reponse: 'respect', indice: 'Vertu suprême', categorie: 'Valeurs', difficulte: 'expert', points: 35, is_premium: true },
+    
+    // Devinettes bonus
+    { id: '21', question: 'Je grandis en me cassant, qui suis-je ?', reponse: 'noix de karité', indice: 'Trésor des femmes', categorie: 'Nature', difficulte: 'moyen', points: 12, is_premium: false },
+    { id: '22', question: 'Je porte le village sur mon dos, qui suis-je ?', reponse: 'femme', indice: 'Pilier de la famille', categorie: 'Société', difficulte: 'difficile', points: 20, is_premium: true },
+    { id: '23', question: 'Je suis né d\'argile mais je vis éternellement, qui suis-je ?', reponse: 'masque', indice: 'Visage des esprits', categorie: 'Art', difficulte: 'difficile', points: 18, is_premium: true },
+    { id: '24', question: 'Je rythme la vie sans jamais me tromper, qui suis-je ?', reponse: 'saison', indice: 'Calendrier naturel', categorie: 'Nature', difficulte: 'moyen', points: 10, is_premium: false },
+    { id: '25', question: 'Je suis la richesse du pauvre et la pauvreté du riche, qui suis-je ?', reponse: 'travail', indice: 'Valeur universelle', categorie: 'Valeurs', difficulte: 'difficile', points: 22, is_premium: true }
+  ]);
+  
+  const [currentDevIndex, setCurrentDevIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [score, setScore] = useState(0);
-  const [answeredQuestions, setAnsweredQuestions] = useState<number[]>([]);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const { toast } = useToast();
-
-  const currentQ = devinettes[currentDevinette];
-
+  const [streak, setStreak] = useState(0);
+  const [answeredCorrectly, setAnsweredCorrectly] = useState<boolean | null>(null);
+  const [completedDevinettes, setCompletedDevinettes] = useState<Set<string>>(new Set());
+  const [level, setLevel] = useState(1);
+  const [experience, setExperience] = useState(0);
+  const [badges, setBadges] = useState<string[]>([]);
+  const [multiplier, setMultiplier] = useState(1);
+  
+  // Filtrer les devinettes selon l'abonnement
+  const accessibleDevinettes = devinettes.filter(dev => !dev.is_premium || subscribed);
+  const currentDevinette = accessibleDevinettes[currentDevIndex];
+  
+  // Calculer le niveau et l'expérience
+  const experienceToNextLevel = level * 100;
+  const levelProgress = (experience % 100);
+  
+  // Badges et achievements
+  const checkBadges = (newScore: number, newStreak: number) => {
+    const newBadges = [...badges];
+    
+    if (newScore >= 50 && !badges.includes('débutant')) newBadges.push('débutant');
+    if (newScore >= 150 && !badges.includes('apprenti')) newBadges.push('apprenti');
+    if (newScore >= 300 && !badges.includes('sage')) newBadges.push('sage');
+    if (newScore >= 500 && !badges.includes('maître')) newBadges.push('maître');
+    if (newStreak >= 5 && !badges.includes('série')) newBadges.push('série');
+    if (newStreak >= 10 && !badges.includes('champion')) newBadges.push('champion');
+    if (completedDevinettes.size >= 10 && !badges.includes('explorateur')) newBadges.push('explorateur');
+    if (completedDevinettes.size >= 20 && !badges.includes('expert')) newBadges.push('expert');
+    
+    if (newBadges.length > badges.length) {
+      setBadges(newBadges);
+      const newBadge = newBadges[newBadges.length - 1];
+      toast.success(`🏆 Nouveau badge débloqué : ${newBadge}!`);
+    }
+  };
+  
+  const getBadgeIcon = (badge: string) => {
+    switch (badge) {
+      case 'débutant': return <Star className="h-4 w-4" />;
+      case 'apprenti': return <Brain className="h-4 w-4" />;
+      case 'sage': return <Award className="h-4 w-4" />;
+      case 'maître': return <Crown className="h-4 w-4" />;
+      case 'série': return <Flame className="h-4 w-4" />;
+      case 'champion': return <Trophy className="h-4 w-4" />;
+      case 'explorateur': return <Target className="h-4 w-4" />;
+      case 'expert': return <Sparkles className="h-4 w-4" />;
+      default: return <Gift className="h-4 w-4" />;
+    }
+  };
+  
   const getDifficultyColor = (difficulte: string) => {
-    const colors: { [key: string]: string } = {
-      "Facile": "bg-accent text-accent-foreground",
-      "Moyen": "bg-secondary text-secondary-foreground",
-      "Difficile": "bg-primary text-primary-foreground"
-    };
-    return colors[difficulte] || "bg-muted text-muted-foreground";
+    switch (difficulte) {
+      case 'facile': return 'bg-green-100 text-green-800 border-green-300';
+      case 'moyen': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'difficile': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'expert': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
   };
-
-  const checkAnswer = () => {
-    const correct = userAnswer.toLowerCase().trim() === currentQ.reponse.toLowerCase().trim();
-    setIsCorrect(correct);
+  
+  const handleSubmitAnswer = () => {
+    if (!userAnswer.trim()) {
+      toast.error("Veuillez entrer une réponse");
+      return;
+    }
+    
+    const isCorrect = userAnswer.toLowerCase().trim() === currentDevinette.reponse.toLowerCase();
+    setAnsweredCorrectly(isCorrect);
     setShowAnswer(true);
-
-    if (correct && !answeredQuestions.includes(currentQ.id)) {
-      const newScore = score + currentQ.points;
+    
+    if (isCorrect) {
+      const points = currentDevinette.points * multiplier;
+      const newScore = score + points;
+      const newStreak = streak + 1;
+      const newExperience = experience + points;
+      
       setScore(newScore);
-      setAnsweredQuestions([...answeredQuestions, currentQ.id]);
-      toast({
-        title: "Bravo ! 🎉",
-        description: `Bonne réponse ! Vous gagnez ${currentQ.points} points.`,
-      });
-    } else if (!correct) {
-      toast({
-        title: "Dommage !",
-        description: "Ce n'est pas la bonne réponse. Essayez encore !",
-        variant: "destructive"
-      });
+      setStreak(newStreak);
+      setExperience(newExperience);
+      setCompletedDevinettes(prev => new Set([...prev, currentDevinette.id]));
+      
+      // Level up
+      if (newExperience >= experienceToNextLevel) {
+        setLevel(level + 1);
+        toast.success(`🎉 Niveau ${level + 1} atteint !`);
+      }
+      
+      // Multiplier de streak
+      if (newStreak % 3 === 0) {
+        setMultiplier(Math.min(multiplier + 0.5, 3));
+        toast.success(`🔥 Multiplicateur x${Math.min(multiplier + 0.5, 3)} !`);
+      }
+      
+      checkBadges(newScore, newStreak);
+      toast.success(`Excellente réponse ! +${points} points`);
+    } else {
+      setStreak(0);
+      setMultiplier(1);
+      toast.error("Ce n'est pas la bonne réponse. Essayez encore !");
     }
   };
-
-  const nextDevinette = () => {
-    if (currentDevinette < devinettes.length - 1) {
-      setCurrentDevinette(currentDevinette + 1);
+  
+  const handleNextDevinette = () => {
+    if (currentDevIndex < accessibleDevinettes.length - 1) {
+      setCurrentDevIndex(currentDevIndex + 1);
       setUserAnswer("");
       setShowAnswer(false);
       setShowHint(false);
-      setIsCorrect(null);
+      setAnsweredCorrectly(null);
+    } else {
+      toast.success("Félicitations ! Vous avez terminé toutes les devinettes disponibles !");
     }
   };
-
-  const previousDevinette = () => {
-    if (currentDevinette > 0) {
-      setCurrentDevinette(currentDevinette - 1);
+  
+  const handlePrevDevinette = () => {
+    if (currentDevIndex > 0) {
+      setCurrentDevIndex(currentDevIndex - 1);
       setUserAnswer("");
       setShowAnswer(false);
       setShowHint(false);
-      setIsCorrect(null);
+      setAnsweredCorrectly(null);
     }
   };
-
-  const toggleHint = () => {
-    setShowHint(!showHint);
-    if (!showHint) {
-      toast({
-        title: "Indice révélé",
-        description: "Voici un petit indice pour vous aider !",
-      });
-    }
+  
+  const canAccessDevinette = (devinette: Devinette) => {
+    return !devinette.is_premium || subscribed;
   };
-
-  const progress = ((currentDevinette + 1) / devinettes.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-earth">
-      {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground py-16">
-        <div className="container mx-auto px-6">
-          <h1 className="text-4xl font-bold mb-4">Devinettes Traditionnelles</h1>
-          <p className="text-xl opacity-90">
-            Testez votre sagesse avec nos devinettes ancestrales du Mali
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Header avec statistiques */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-4">
+            Devinettes Traditionnelles
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+            Testez votre sagesse avec nos énigmes ancestrales et gagnez des points en découvrant les secrets de la culture malienne.
           </p>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-8">
-        {/* Score and Progress */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-secondary" />
-                <span className="font-semibold text-foreground">Score: {score}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Coins className="h-5 w-5 text-accent" />
-                <span className="text-muted-foreground">{answeredQuestions.length}/{devinettes.length} résolues</span>
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Question {currentDevinette + 1} sur {devinettes.length}
-            </div>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Main Devinette Card */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="shadow-warm">
-            <CardHeader>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-xl">Devinette #{currentQ.id}</CardTitle>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={getDifficultyColor(currentQ.difficulte)}>
-                    {currentQ.difficulte}
-                  </Badge>
-                  <Badge variant="outline">
-                    <Star className="w-3 h-3 mr-1" />
-                    {currentQ.points} pts
-                  </Badge>
-                </div>
-              </div>
-              
-              <CardDescription className="text-lg leading-relaxed">
-                {currentQ.question}
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              {/* Answer Input */}
-              <div className="space-y-4">
-                <Input
-                  placeholder="Tapez votre réponse ici..."
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !showAnswer && checkAnswer()}
-                  disabled={showAnswer}
-                  className="text-lg"
-                />
-
-                <div className="flex flex-wrap gap-3">
-                  {!showAnswer && (
-                    <>
-                      <Button 
-                        onClick={checkAnswer} 
-                        disabled={!userAnswer.trim()}
-                        className="bg-gradient-primary hover:shadow-warm"
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Vérifier ma réponse
-                      </Button>
-                      
-                      <Button 
-                        variant="outline" 
-                        onClick={toggleHint}
-                        className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-                      >
-                        {showHint ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                        {showHint ? "Cacher l'indice" : "Voir un indice"}
-                      </Button>
-                    </>
-                  )}
-
-                  {showAnswer && (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowAnswer(false)}
-                      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                    >
-                      Essayer à nouveau
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {/* Hint */}
-              {showHint && (
-                <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="h-4 w-4 text-accent" />
-                    <span className="font-medium text-accent">Indice</span>
-                  </div>
-                  <p className="text-muted-foreground">{currentQ.indice}</p>
-                </div>
-              )}
-
-              {/* Answer Reveal */}
-              {showAnswer && (
-                <div className={`p-4 border rounded-lg ${isCorrect 
-                  ? 'bg-accent/10 border-accent/20' 
-                  : 'bg-destructive/10 border-destructive/20'}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {isCorrect ? (
-                      <CheckCircle className="h-5 w-5 text-accent" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-destructive" />
-                    )}
-                    <span className="font-medium">
-                      {isCorrect ? "Excellente réponse !" : "La bonne réponse était :"}
-                    </span>
-                  </div>
-                  <p className="text-lg font-semibold">{currentQ.reponse}</p>
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div className="flex justify-between pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={previousDevinette}
-                  disabled={currentDevinette === 0}
-                >
-                  Précédente
-                </Button>
-                
-                <Button 
-                  onClick={nextDevinette}
-                  disabled={currentDevinette === devinettes.length - 1}
-                  className="bg-gradient-primary hover:shadow-warm"
-                >
-                  Suivante
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Summary Card */}
-          {currentDevinette === devinettes.length - 1 && answeredQuestions.length === devinettes.length && (
-            <Card className="mt-8 shadow-warm">
-              <CardHeader>
-                <CardTitle className="text-center text-2xl flex items-center justify-center gap-2">
-                  <Trophy className="h-8 w-8 text-secondary" />
-                  Félicitations !
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-lg mb-4">
-                  Vous avez terminé toutes les devinettes avec un score de <strong>{score} points</strong> !
-                </p>
-                <Button className="bg-gradient-primary hover:shadow-warm">
-                  Recommencer le défi
-                </Button>
+          
+          {/* Statistiques de jeu */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0">
+              <CardContent className="p-4 text-center">
+                <Trophy className="h-6 w-6 mx-auto mb-2" />
+                <div className="text-2xl font-bold">{score}</div>
+                <div className="text-sm opacity-90">Points</div>
               </CardContent>
             </Card>
-          )}
+            
+            <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+              <CardContent className="p-4 text-center">
+                <TrendingUp className="h-6 w-6 mx-auto mb-2" />
+                <div className="text-2xl font-bold">{level}</div>
+                <div className="text-sm opacity-90">Niveau</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
+              <CardContent className="p-4 text-center">
+                <Flame className="h-6 w-6 mx-auto mb-2" />
+                <div className="text-2xl font-bold">{streak}</div>
+                <div className="text-sm opacity-90">Série</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+              <CardContent className="p-4 text-center">
+                <Star className="h-6 w-6 mx-auto mb-2" />
+                <div className="text-2xl font-bold">{badges.length}</div>
+                <div className="text-sm opacity-90">Badges</div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Barre d'expérience */}
+          <Card className="bg-white/70 backdrop-blur-sm border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Niveau {level}</span>
+                <span className="text-sm text-gray-500">{experience}/{experienceToNextLevel} XP</span>
+              </div>
+              <Progress value={levelProgress} className="h-3" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Devinette principale */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-xl border-2 border-orange-200 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="text-center pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <Badge className={`${getDifficultyColor(currentDevinette.difficulte)} font-semibold`}>
+                    {currentDevinette.difficulte.toUpperCase()}
+                  </Badge>
+                  <Badge variant="outline" className="border-orange-300 text-orange-700">
+                    {currentDevinette.categorie}
+                  </Badge>
+                  {currentDevinette.is_premium && (
+                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+                
+                <CardTitle className="text-2xl text-gray-800 leading-relaxed">
+                  {currentDevinette.question}
+                </CardTitle>
+                
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <div className="flex items-center gap-1">
+                    <Zap className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm font-medium">{currentDevinette.points} pts</span>
+                  </div>
+                  {multiplier > 1 && (
+                    <div className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-full">
+                      <Flame className="h-3 w-3" />
+                      <span className="text-xs font-bold">x{multiplier}</span>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                {!canAccessDevinette(currentDevinette) ? (
+                  <div className="text-center py-8 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                    <Lock className="h-12 w-12 mx-auto mb-4 text-amber-600" />
+                    <h3 className="text-lg font-semibold text-amber-800 mb-2">Devinette Premium</h3>
+                    <p className="text-amber-700 mb-4">Abonnez-vous pour débloquer cette devinette exclusive</p>
+                    <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
+                      Devenir Premium
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {!showAnswer && (
+                      <div className="space-y-4">
+                        <Input
+                          value={userAnswer}
+                          onChange={(e) => setUserAnswer(e.target.value)}
+                          placeholder="Entrez votre réponse..."
+                          className="text-center text-lg py-3 border-orange-200 focus:border-orange-400"
+                          onKeyPress={(e) => e.key === 'Enter' && handleSubmitAnswer()}
+                        />
+                        
+                        <div className="flex gap-3 justify-center">
+                          <Button
+                            onClick={handleSubmitAnswer}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Valider
+                          </Button>
+                          
+                          <Button
+                            onClick={() => setShowHint(!showHint)}
+                            variant="outline"
+                            className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                          >
+                            <Lightbulb className="h-4 w-4 mr-2" />
+                            Indice
+                          </Button>
+                        </div>
+                        
+                        {showHint && (
+                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Lightbulb className="h-4 w-4 text-blue-600" />
+                              <span className="font-medium text-blue-800">Indice :</span>
+                            </div>
+                            <p className="text-blue-700">{currentDevinette.indice}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {showAnswer && (
+                      <div className="space-y-4">
+                        <div className={`rounded-lg p-6 text-center ${
+                          answeredCorrectly
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200'
+                            : 'bg-gradient-to-r from-red-50 to-pink-50 border border-red-200'
+                        }`}>
+                          {answeredCorrectly ? (
+                            <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
+                          ) : (
+                            <XCircle className="h-12 w-12 mx-auto mb-4 text-red-600" />
+                          )}
+                          
+                          <h3 className={`text-xl font-bold mb-2 ${
+                            answeredCorrectly ? 'text-green-800' : 'text-red-800'
+                          }`}>
+                            {answeredCorrectly ? 'Excellente réponse !' : 'Pas tout à fait...'}
+                          </h3>
+                          
+                          <p className={`text-lg mb-4 ${
+                            answeredCorrectly ? 'text-green-700' : 'text-red-700'
+                          }`}>
+                            La réponse était : <strong>{currentDevinette.reponse}</strong>
+                          </p>
+                          
+                          {currentDevinette.explication && (
+                            <div className="bg-white/50 rounded-lg p-4 text-left">
+                              <h4 className="font-semibold text-gray-800 mb-2">Explication :</h4>
+                              <p className="text-gray-700">{currentDevinette.explication}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <Button
+                          onClick={handleNextDevinette}
+                          className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-3"
+                          disabled={currentDevIndex >= accessibleDevinettes.length - 1}
+                        >
+                          {currentDevIndex >= accessibleDevinettes.length - 1 ? (
+                            <>
+                              <Trophy className="h-4 w-4 mr-2" />
+                              Toutes les devinettes terminées !
+                            </>
+                          ) : (
+                            <>
+                              Devinette suivante
+                              <ArrowRight className="h-4 w-4 ml-2" />
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Navigation */}
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <Button
+                    onClick={handlePrevDevinette}
+                    disabled={currentDevIndex === 0}
+                    variant="outline"
+                    className="border-orange-300 text-orange-700"
+                  >
+                    Précédente
+                  </Button>
+                  
+                  <span className="text-sm text-gray-600 font-medium">
+                    {currentDevIndex + 1} / {accessibleDevinettes.length}
+                  </span>
+                  
+                  <Button
+                    onClick={handleNextDevinette}
+                    disabled={currentDevIndex >= accessibleDevinettes.length - 1}
+                    variant="outline"
+                    className="border-orange-300 text-orange-700"
+                  >
+                    Suivante
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Panneau latéral */}
+          <div className="space-y-6">
+            {/* Badges */}
+            <Card className="border-orange-200 bg-white/90 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800">
+                  <Award className="h-5 w-5 text-orange-600" />
+                  Badges débloqués
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {badges.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {badges.map((badge, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-3">
+                        <div className="text-yellow-600">
+                          {getBadgeIcon(badge)}
+                        </div>
+                        <span className="text-sm font-medium text-yellow-800 capitalize">{badge}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">
+                    Répondez correctement pour débloquer des badges !
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Progression par catégorie */}
+            <Card className="border-orange-200 bg-white/90 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-800">
+                  <Target className="h-5 w-5 text-orange-600" />
+                  Progression
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {['Animaux', 'Nature', 'Culture', 'Spiritualité', 'Valeurs'].map(cat => {
+                    const categoryQuestions = accessibleDevinettes.filter(d => d.categorie === cat);
+                    const completed = categoryQuestions.filter(d => completedDevinettes.has(d.id)).length;
+                    const progress = categoryQuestions.length > 0 ? (completed / categoryQuestions.length) * 100 : 0;
+                    
+                    return (
+                      <div key={cat}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-700">{cat}</span>
+                          <span className="text-gray-600">{completed}/{categoryQuestions.length}</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Call to action Premium */}
+            {!subscribed && (
+              <Card className="border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50">
+                <CardContent className="p-6 text-center">
+                  <Crown className="h-8 w-8 mx-auto mb-3 text-amber-600" />
+                  <h3 className="font-bold text-amber-800 mb-2">Débloquez plus de devinettes !</h3>
+                  <p className="text-sm text-amber-700 mb-4">
+                    Accédez à {devinettes.filter(d => d.is_premium).length} devinettes premium supplémentaires
+                  </p>
+                  <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white w-full">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Devenir Premium
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
