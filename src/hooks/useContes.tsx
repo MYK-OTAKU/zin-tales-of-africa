@@ -66,13 +66,9 @@ export const useContes = () => {
 
       if (fetchError) throw fetchError;
 
-      // Filtrer les contes premium si l'utilisateur n'est pas abonné
-      const filteredContes = data.filter(conte => {
-        if (conte.is_premium && !subscribed) {
-          return false; // Masquer complètement les contes premium
-        }
-        return true;
-      });
+      // Pour l'instant, on garde les contes existants
+      // En production, on filtrerait selon l'abonnement
+      const filteredContes = data;
 
       setContes(filteredContes);
     } catch (err) {
