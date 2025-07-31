@@ -78,7 +78,7 @@ export const useDevinettes = () => {
       await fetchProgress();
       setLoading(false);
     };
-    fetchData();
+    void fetchData();
   }, [fetchDevinettes, fetchProgress]);
 
   const updateProgress = async (newProgress: Partial<UserDevinetteProgress>) => {
