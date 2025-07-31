@@ -1,0 +1,6 @@
+INSERT INTO contes (titre, description, categorie, duree_minutes, is_premium, langues, morale, ordre_affichage, actif) VALUES
+('Le Caiman et le Singe', 'Une histoire sur la ruse et la prudence, où un singe malin doit échapper à un caïman affamé.', 'Sagesse', 6, false, '{"Français", "Bambara"}', 'La prudence est mère de sûreté.', 10, true),
+('La Fille du Soleil et de la Lune', 'Un conte poétique sur la naissance des étoiles, nées des larmes d''une déesse.', 'Mystique', 8, true, '{"Français", "Bambara"}', 'Même dans l''obscurité, la beauté peut naître.', 11, true),
+('Le Pagne de la Mère', 'L''histoire d''un jeune homme qui apprend à respecter sa mère et la valeur de son héritage.', 'Famille', 5, false, '{"Français", "Bambara"}', 'N''oublie jamais d''où tu viens et qui t''a élevé.', 12, true),
+('Le Chacal et les Poules', 'Un chacal gourmand tente de voler toutes les poules d''un village, mais sa cupidité le perdra.', 'Aventure', 7, false, '{"Français", "Bambara"}', 'Celui qui veut tout, perd tout.', 13, true),
+('L''Arbre à Palabres et le Secret du Roi', 'Un arbre magique qui entend tous les secrets du village est menacé par un roi qui veut cacher ses méfaits.', 'Magie', 9, true, '{"Français", "Bambara"}', 'La vérité finit toujours par éclater, même si elle est cachée au fond d''un arbre.', 14, true);
