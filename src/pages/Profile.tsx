@@ -34,6 +34,7 @@ const Profile = () => {
     avatar_url: ''
   });
   const [userPoints, setUserPoints] = useState(0);
+  const [devinetteProgress, setDevinetteProgress] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -65,16 +66,17 @@ const Profile = () => {
       }
 
       // Charger les points
-      const { data: pointsData, error: pointsError } = await supabase
-        .from('user_points')
-        .select('total_points')
+      const { data: devinetteProgressData, error: devinetteError } = await supabase
+        .from('user_devinette_progress')
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (pointsError && pointsError.code !== 'PGRST116') {
-        console.error('Error loading points:', pointsError);
-      } else if (pointsData) {
-        setUserPoints(pointsData.total_points || 0);
+      if (devinetteError && devinetteError.code !== 'PGRST116') {
+        console.error('Error loading devinette progress:', devinetteError);
+      } else if (devinetteProgressData) {
+        setUserPoints(devinetteProgressData.score || 0);
+        setDevinetteProgress(devinetteProgressData);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -300,12 +302,12 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm">Contes lus</span>
-                      <span className="text-sm font-medium">-</span>
+                      <span className="text-sm">Niveau Devinettes</span>
+                      <span className="text-sm font-medium">{devinetteProgress?.level || 1}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Devinettes résolues</span>
-                      <span className="text-sm font-medium">-</span>
+                      <span className="text-sm font-medium">{devinetteProgress?.completed_devinettes?.length || 0}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -316,16 +318,24 @@ const Profile = () => {
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <Star className="h-5 w-5 text-primary" />
-                    <CardTitle>Récompenses</CardTitle>
+                    <CardTitle>Badges Devinettes</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center text-muted-foreground">
-                    <p className="text-sm">Aucune récompense pour le moment</p>
-                    <p className="text-xs mt-2">
-                      Continuez à explorer pour débloquer des badges !
-                    </p>
-                  </div>
+                  {devinetteProgress?.badges?.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {devinetteProgress.badges.map(badge => (
+                        <Badge key={badge} variant="secondary">{badge}</Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-sm">Aucun badge pour le moment</p>
+                      <p className="text-xs mt-2">
+                        Continuez à jouer aux devinettes pour en débloquer !
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

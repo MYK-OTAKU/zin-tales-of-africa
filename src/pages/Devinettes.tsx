@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { 
-  HelpCircle, 
   Lightbulb, 
   CheckCircle, 
   XCircle, 
@@ -21,105 +20,47 @@ import {
   TrendingUp,
   Brain,
   Lock,
-  Unlock,
-  Timer,
-  Heart,
+  ArrowRight,
   Flame,
-  ArrowRight
+  Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
-
-interface Devinette {
-  id: string;
-  question: string;
-  reponse: string;
-  indice: string;
-  categorie: string;
-  difficulte: 'facile' | 'moyen' | 'difficile' | 'expert';
-  points: number;
-  is_premium: boolean;
-  explication?: string;
-}
+import { useDevinettes, Devinette } from "@/hooks/useDevinettes";
 
 const Devinettes = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
-  
-  const [devinettes] = useState<Devinette[]>([
-    // Devinettes Faciles (Gratuit)
-    { id: '1', question: 'Je suis grand et gris, j\'ai une trompe, qui suis-je ?', reponse: 'éléphant', indice: 'Je vis en Afrique et j\'aime l\'eau', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false, explication: 'L\'éléphant est le plus grand mammifère terrestre d\'Afrique.' },
-    { id: '2', question: 'Je tisse ma maison avec du fil, qui suis-je ?', reponse: 'araignée', indice: 'Je mange les mouches', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false, explication: 'L\'araignée tisse sa toile pour capturer ses proies.' },
-    { id: '3', question: 'Je coule sans jamais m\'arrêter, qui suis-je ?', reponse: 'rivière', indice: 'Les poissons nagent en moi', categorie: 'Nature', difficulte: 'facile', points: 5, is_premium: false, explication: 'La rivière est un cours d\'eau naturel.' },
-    { id: '4', question: 'Je brille la nuit et éclaire le chemin, qui suis-je ?', reponse: 'lune', indice: 'Je change de forme chaque nuit', categorie: 'Nature', difficulte: 'facile', points: 5, is_premium: false },
-    { id: '5', question: 'Je suis roi de la savane, qui suis-je ?', reponse: 'lion', indice: 'J\'ai une crinière majestueuse', categorie: 'Animaux', difficulte: 'facile', points: 5, is_premium: false },
-    { id: '6', question: 'Je donne de l\'ombre au village, qui suis-je ?', reponse: 'baobab', indice: 'Je suis un arbre sacré', categorie: 'Nature', difficulte: 'facile', points: 8, is_premium: false },
-    
-    // Devinettes Moyennes (Gratuit)
-    { id: '7', question: 'Je raconte les histoires du village, qui suis-je ?', reponse: 'griot', indice: 'Je joue de la musique', categorie: 'Culture', difficulte: 'moyen', points: 10, is_premium: false, explication: 'Le griot est le gardien de la tradition orale en Afrique de l\'Ouest.' },
-    { id: '8', question: 'Plus je suis vieux, plus je suis respecté au village, qui suis-je ?', reponse: 'sage', indice: 'J\'ai beaucoup d\'expérience', categorie: 'Culture', difficulte: 'moyen', points: 10, is_premium: false },
-    { id: '9', question: 'Je nourris tout le village mais ne mange jamais, qui suis-je ?', reponse: 'mil', indice: 'Je pousse dans les champs', categorie: 'Agriculture', difficulte: 'moyen', points: 10, is_premium: false },
-    { id: '10', question: 'Je protège la maison mais n\'ai pas de murs, qui suis-je ?', reponse: 'esprit', indice: 'Les ancêtres veillent', categorie: 'Spiritualité', difficulte: 'moyen', points: 12, is_premium: false },
-    
-    // Devinettes Difficiles (Premium)
-    { id: '11', question: 'Je lie les familles sans être vu, qui suis-je ?', reponse: 'totém', indice: 'Chaque clan a le sien', categorie: 'Culture', difficulte: 'difficile', points: 15, is_premium: true, explication: 'Le totém est l\'animal protecteur d\'un clan.' },
-    { id: '12', question: 'Je parle sans voix, je enseigne sans école, qui suis-je ?', reponse: 'proverbe', indice: 'La sagesse des anciens', categorie: 'Culture', difficulte: 'difficile', points: 15, is_premium: true },
-    { id: '13', question: 'Je suis la richesse qui ne se compte pas, qui suis-je ?', reponse: 'honneur', indice: 'Plus précieux que l\'or', categorie: 'Valeurs', difficulte: 'difficile', points: 18, is_premium: true },
-    { id: '14', question: 'Je unifie les villages sans être chef, qui suis-je ?', reponse: 'marché', indice: 'Le lieu des échanges', categorie: 'Société', difficulte: 'difficile', points: 15, is_premium: true },
-    { id: '15', question: 'Je guéris sans médicament, qui suis-je ?', reponse: 'parole', indice: 'La force des mots justes', categorie: 'Spiritualité', difficulte: 'difficile', points: 20, is_premium: true },
-    
-    // Devinettes Expert (Premium)
-    { id: '16', question: 'Je suis le premier et le dernier de chaque génération, qui suis-je ?', reponse: 'nom', indice: 'Héritage ancestral', categorie: 'Généalogie', difficulte: 'expert', points: 25, is_premium: true },
-    { id: '17', question: 'Je traverse les siècles sans vieillir, qui suis-je ?', reponse: 'tradition', indice: 'Transmise de père en fils', categorie: 'Culture', difficulte: 'expert', points: 25, is_premium: true },
-    { id: '18', question: 'Je suis invisible mais plus fort que le fer, qui suis-je ?', reponse: 'serment', indice: 'Lien sacré entre hommes', categorie: 'Valeurs', difficulte: 'expert', points: 30, is_premium: true },
-    { id: '19', question: 'Je nais de la terre mais appartiens au ciel, qui suis-je ?', reponse: 'ancêtre', indice: 'Entre deux mondes', categorie: 'Spiritualité', difficulte: 'expert', points: 30, is_premium: true },
-    { id: '20', question: 'Je suis le silence qui parle le plus fort, qui suis-je ?', reponse: 'respect', indice: 'Vertu suprême', categorie: 'Valeurs', difficulte: 'expert', points: 35, is_premium: true },
-    
-    // Devinettes bonus
-    { id: '21', question: 'Je grandis en me cassant, qui suis-je ?', reponse: 'noix de karité', indice: 'Trésor des femmes', categorie: 'Nature', difficulte: 'moyen', points: 12, is_premium: false },
-    { id: '22', question: 'Je porte le village sur mon dos, qui suis-je ?', reponse: 'femme', indice: 'Pilier de la famille', categorie: 'Société', difficulte: 'difficile', points: 20, is_premium: true },
-    { id: '23', question: 'Je suis né d\'argile mais je vis éternellement, qui suis-je ?', reponse: 'masque', indice: 'Visage des esprits', categorie: 'Art', difficulte: 'difficile', points: 18, is_premium: true },
-    { id: '24', question: 'Je rythme la vie sans jamais me tromper, qui suis-je ?', reponse: 'saison', indice: 'Calendrier naturel', categorie: 'Nature', difficulte: 'moyen', points: 10, is_premium: false },
-    { id: '25', question: 'Je suis la richesse du pauvre et la pauvreté du riche, qui suis-je ?', reponse: 'travail', indice: 'Valeur universelle', categorie: 'Valeurs', difficulte: 'difficile', points: 22, is_premium: true }
-  ]);
-  
+  const { devinettes, accessibleDevinettes, progress, loading, updateProgress } = useDevinettes();
+
   const [currentDevIndex, setCurrentDevIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [score, setScore] = useState(0);
-  const [streak, setStreak] = useState(0);
   const [answeredCorrectly, setAnsweredCorrectly] = useState<boolean | null>(null);
-  const [completedDevinettes, setCompletedDevinettes] = useState<Set<string>>(new Set());
-  const [level, setLevel] = useState(1);
-  const [experience, setExperience] = useState(0);
-  const [badges, setBadges] = useState<string[]>([]);
   const [multiplier, setMultiplier] = useState(1);
   
-  // Filtrer les devinettes selon l'abonnement
-  const accessibleDevinettes = devinettes.filter(dev => !dev.is_premium || subscribed);
   const currentDevinette = accessibleDevinettes[currentDevIndex];
   
-  // Calculer le niveau et l'expérience
-  const experienceToNextLevel = level * 100;
-  const levelProgress = (experience % 100);
-  
-  // Badges et achievements
+  const experienceToNextLevel = (progress?.level || 1) * 100;
+  const levelProgress = ((progress?.experience || 0) % 100);
+
   const checkBadges = (newScore: number, newStreak: number) => {
-    const newBadges = [...badges];
+    const currentBadges = progress?.badges || [];
+    const newBadges = [...currentBadges];
     
-    if (newScore >= 50 && !badges.includes('débutant')) newBadges.push('débutant');
-    if (newScore >= 150 && !badges.includes('apprenti')) newBadges.push('apprenti');
-    if (newScore >= 300 && !badges.includes('sage')) newBadges.push('sage');
-    if (newScore >= 500 && !badges.includes('maître')) newBadges.push('maître');
-    if (newStreak >= 5 && !badges.includes('série')) newBadges.push('série');
-    if (newStreak >= 10 && !badges.includes('champion')) newBadges.push('champion');
-    if (completedDevinettes.size >= 10 && !badges.includes('explorateur')) newBadges.push('explorateur');
-    if (completedDevinettes.size >= 20 && !badges.includes('expert')) newBadges.push('expert');
+    if (newScore >= 50 && !currentBadges.includes('débutant')) newBadges.push('débutant');
+    if (newScore >= 150 && !currentBadges.includes('apprenti')) newBadges.push('apprenti');
+    if (newScore >= 300 && !currentBadges.includes('sage')) newBadges.push('sage');
+    if (newScore >= 500 && !currentBadges.includes('maître')) newBadges.push('maître');
+    if (newStreak >= 5 && !currentBadges.includes('série')) newBadges.push('série');
+    if (newStreak >= 10 && !currentBadges.includes('champion')) newBadges.push('champion');
+    if ((progress?.completed_devinettes.length || 0) >= 10 && !currentBadges.includes('explorateur')) newBadges.push('explorateur');
+    if ((progress?.completed_devinettes.length || 0) >= 20 && !currentBadges.includes('expert')) newBadges.push('expert');
     
-    if (newBadges.length > badges.length) {
-      setBadges(newBadges);
+    if (newBadges.length > currentBadges.length) {
+      updateProgress({ badges: newBadges });
       const newBadge = newBadges[newBadges.length - 1];
       toast.success(`🏆 Nouveau badge débloqué : ${newBadge}!`);
     }
@@ -150,7 +91,7 @@ const Devinettes = () => {
   };
   
   const handleSubmitAnswer = () => {
-    if (!userAnswer.trim()) {
+    if (!userAnswer.trim() || !progress) {
       toast.error("Veuillez entrer une réponse");
       return;
     }
@@ -161,32 +102,36 @@ const Devinettes = () => {
     
     if (isCorrect) {
       const points = currentDevinette.points * multiplier;
-      const newScore = score + points;
-      const newStreak = streak + 1;
-      const newExperience = experience + points;
+      const newScore = progress.score + points;
+      const newStreak = progress.streak + 1;
+      const newExperience = progress.experience + points;
+      const newCompleted = [...progress.completed_devinettes, currentDevinette.id];
       
-      setScore(newScore);
-      setStreak(newStreak);
-      setExperience(newExperience);
-      setCompletedDevinettes(prev => new Set([...prev, currentDevinette.id]));
-      
-      // Level up
+      let newLevel = progress.level;
       if (newExperience >= experienceToNextLevel) {
-        setLevel(level + 1);
-        toast.success(`🎉 Niveau ${level + 1} atteint !`);
+        newLevel += 1;
+        toast.success(`🎉 Niveau ${newLevel} atteint !`);
       }
       
-      // Multiplier de streak
-      if (newStreak % 3 === 0) {
+      if (newStreak > 0 && newStreak % 3 === 0) {
         setMultiplier(Math.min(multiplier + 0.5, 3));
         toast.success(`🔥 Multiplicateur x${Math.min(multiplier + 0.5, 3)} !`);
       }
       
+      const newProgress = {
+        score: newScore,
+        streak: newStreak,
+        experience: newExperience,
+        level: newLevel,
+        completed_devinettes: newCompleted,
+      };
+
+      updateProgress(newProgress);
       checkBadges(newScore, newStreak);
       toast.success(`Excellente réponse ! +${points} points`);
     } else {
-      setStreak(0);
       setMultiplier(1);
+      updateProgress({ streak: 0 });
       toast.error("Ce n'est pas la bonne réponse. Essayez encore !");
     }
   };
@@ -217,6 +162,14 @@ const Devinettes = () => {
     return !devinette.is_premium || subscribed;
   };
 
+  if (loading || !progress) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
+        <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
       <div className="max-w-6xl mx-auto p-6">
@@ -234,7 +187,7 @@ const Devinettes = () => {
             <Card className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0">
               <CardContent className="p-4 text-center">
                 <Trophy className="h-6 w-6 mx-auto mb-2" />
-                <div className="text-2xl font-bold">{score}</div>
+                <div className="text-2xl font-bold">{progress.score}</div>
                 <div className="text-sm opacity-90">Points</div>
               </CardContent>
             </Card>
@@ -242,7 +195,7 @@ const Devinettes = () => {
             <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-6 w-6 mx-auto mb-2" />
-                <div className="text-2xl font-bold">{level}</div>
+                <div className="text-2xl font-bold">{progress.level}</div>
                 <div className="text-sm opacity-90">Niveau</div>
               </CardContent>
             </Card>
@@ -250,7 +203,7 @@ const Devinettes = () => {
             <Card className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
               <CardContent className="p-4 text-center">
                 <Flame className="h-6 w-6 mx-auto mb-2" />
-                <div className="text-2xl font-bold">{streak}</div>
+                <div className="text-2xl font-bold">{progress.streak}</div>
                 <div className="text-sm opacity-90">Série</div>
               </CardContent>
             </Card>
@@ -258,7 +211,7 @@ const Devinettes = () => {
             <Card className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
               <CardContent className="p-4 text-center">
                 <Star className="h-6 w-6 mx-auto mb-2" />
-                <div className="text-2xl font-bold">{badges.length}</div>
+                <div className="text-2xl font-bold">{progress.badges.length}</div>
                 <div className="text-sm opacity-90">Badges</div>
               </CardContent>
             </Card>
@@ -268,8 +221,8 @@ const Devinettes = () => {
           <Card className="bg-white/70 backdrop-blur-sm border-orange-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Niveau {level}</span>
-                <span className="text-sm text-gray-500">{experience}/{experienceToNextLevel} XP</span>
+                <span className="text-sm font-medium text-gray-700">Niveau {progress.level}</span>
+                <span className="text-sm text-gray-500">{progress.experience}/{experienceToNextLevel} XP</span>
               </div>
               <Progress value={levelProgress} className="h-3" />
             </CardContent>
@@ -462,9 +415,9 @@ const Devinettes = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {badges.length > 0 ? (
+                {progress.badges.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
-                    {badges.map((badge, index) => (
+                    {progress.badges.map((badge, index) => (
                       <div key={index} className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-3">
                         <div className="text-yellow-600">
                           {getBadgeIcon(badge)}
@@ -493,8 +446,8 @@ const Devinettes = () => {
                 <div className="space-y-3">
                   {['Animaux', 'Nature', 'Culture', 'Spiritualité', 'Valeurs'].map(cat => {
                     const categoryQuestions = accessibleDevinettes.filter(d => d.categorie === cat);
-                    const completed = categoryQuestions.filter(d => completedDevinettes.has(d.id)).length;
-                    const progress = categoryQuestions.length > 0 ? (completed / categoryQuestions.length) * 100 : 0;
+                    const completed = categoryQuestions.filter(d => progress.completed_devinettes.includes(d.id)).length;
+                    const progressValue = categoryQuestions.length > 0 ? (completed / categoryQuestions.length) * 100 : 0;
                     
                     return (
                       <div key={cat}>
@@ -502,7 +455,7 @@ const Devinettes = () => {
                           <span className="text-gray-700">{cat}</span>
                           <span className="text-gray-600">{completed}/{categoryQuestions.length}</span>
                         </div>
-                        <Progress value={progress} className="h-2" />
+                        <Progress value={progressValue} className="h-2" />
                       </div>
                     );
                   })}

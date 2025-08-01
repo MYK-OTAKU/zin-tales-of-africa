@@ -105,20 +105,22 @@ const Home = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border bg-card hover:shadow-warm transition-all duration-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto h-12 w-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                  <Crown className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <CardTitle className="text-foreground">Mode Premium</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Accès illimité à toute la bibliothèque, téléchargements hors ligne 
-                  et expérience sans publicité.
-                </CardDescription>
-              </CardContent>
-            </Card>
+            <Link to="/premium" className="cursor-pointer">
+              <Card className="border-border bg-card hover:shadow-warm transition-all duration-300 h-full">
+                <CardHeader className="text-center">
+                  <div className="mx-auto h-12 w-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
+                    <Crown className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <CardTitle className="text-foreground">Mode Premium</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>
+                    Accès illimité à toute la bibliothèque, téléchargements hors ligne
+                    et expérience sans publicité.
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
 
             <Card className="border-border bg-card hover:shadow-warm transition-all duration-300">
               <CardHeader className="text-center">
