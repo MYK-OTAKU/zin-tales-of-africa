@@ -29,6 +29,17 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useDevinettes, Devinette } from "@/hooks/useDevinettes";
 
+const normalizeAnswer = (answer: string) => {
+  return answer
+    .toLowerCase()
+    .normalize("NFD") // Decompose accents
+    .replace(/[\u0300-\u036f]/g, "") // Remove accent characters
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g,"") // Remove punctuation
+    .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+    .replace(/^(un|une|le|la|les|l')\s/g, '') // Remove articles at the beginning
+    .trim();
+};
+
 const Devinettes = () => {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
@@ -96,7 +107,7 @@ const Devinettes = () => {
       return;
     }
     
-    const isCorrect = userAnswer.toLowerCase().trim() === currentDevinette.reponse.toLowerCase();
+    const isCorrect = normalizeAnswer(userAnswer) === normalizeAnswer(currentDevinette.reponse);
     setAnsweredCorrectly(isCorrect);
     setShowAnswer(true);
     

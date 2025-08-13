@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+
+// Fisher-Yates shuffle algorithm
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
 import { toast } from 'sonner';
@@ -49,7 +59,7 @@ export const useDevinettes = () => {
         toast.error('Erreur lors du chargement des devinettes.');
         console.error(devinettesResult.error);
       } else {
-        setDevinettes(devinettesResult.data as Devinette[]);
+        setDevinettes(shuffleArray(devinettesResult.data as Devinette[]));
       }
 
       // Handle progress
