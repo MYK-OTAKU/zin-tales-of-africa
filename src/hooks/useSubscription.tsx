@@ -47,6 +47,12 @@ export const useSubscription = () => {
           description: "Impossible de vérifier l'abonnement",
           variant: "destructive",
         });
+        setSubscriptionData({
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null,
+          loading: false,
+        });
         return;
       }
 
