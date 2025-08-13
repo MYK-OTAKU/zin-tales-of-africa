@@ -58,38 +58,6 @@ const defaultImages: { [key: string]: string } = {
   "Aventure": chasseurEspritImg
 };
 
-// Contenu exemple des contes (simule les pages du conte)
-const sampleConteContent = {
-  pages: [
-    {
-      numero: 1,
-      contenu: "Il était une fois, dans un petit village du Mali, une araignée très rusée nommée Anansi. Elle était connue dans tout le village pour son intelligence et sa capacité à résoudre les problèmes les plus difficiles.",
-      image: araigneeElephantImg
-    },
-    {
-      numero: 2,
-      contenu: "Un jour, un énorme éléphant arriva dans le village. Il était si grand et si fort qu'il écrasait tout sur son passage. Les villageois avaient peur et ne savaient plus quoi faire.",
-      image: araigneeElephantImg
-    },
-    {
-      numero: 3,
-      contenu: "Anansi observa l'éléphant pendant quelques jours. Elle remarqua qu'il avait soif et cherchait constamment de l'eau. Elle eut alors une idée géniale pour aider le village.",
-      image: araigneeElephantImg
-    },
-    {
-      numero: 4,
-      contenu: "Anansi tissa une toile géante près du puits du village. Quand l'éléphant vint boire, il se prit les pattes dans la toile. Mais au lieu de se débattre, il se calma.",
-      image: araigneeElephantImg
-    },
-    {
-      numero: 5,
-      contenu: "L'araignée lui expliqua qu'elle pouvait l'aider à trouver un endroit parfait avec beaucoup d'eau, à condition qu'il promette de ne plus détruire le village.",
-      image: araigneeElephantImg
-    }
-  ],
-  morale: "L'intelligence et la ruse peuvent triompher de la force brute. Il ne faut jamais sous-estimer quelqu'un à cause de sa taille ou de son apparence."
-};
-
 const ConteReading = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -106,7 +74,7 @@ const ConteReading = () => {
 
   // États du conte
   const [conte, setConte] = useState<Conte | null>(null);
-  const [pages, setPages] = useState<any[]>(sampleConteContent.pages);
+  const [pages, setPages] = useState<ContePage[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewMode, setViewMode] = useState<"page" | "continu">("page");
   const [loading, setLoading] = useState(true);
@@ -163,6 +131,17 @@ const ConteReading = () => {
             navigate('/contes');
             return;
           }
+        }
+
+        // Charger les pages du conte
+        const contePages = await fetchContePages(id);
+        if (contePages.length > 0) {
+          setPages(contePages);
+        } else {
+          // Gérer le cas où il n'y a pas de pages, peut-être rediriger
+          toast.error("Ce conte n'a pas encore de contenu.");
+          navigate('/contes');
+          return;
         }
 
         // Charger le progrès utilisateur
@@ -659,7 +638,7 @@ const ConteReading = () => {
                     </h3>
                   </div>
                   <p className={`${isDarkMode ? 'text-amber-100' : 'text-orange-700'} leading-relaxed`}>
-                    {sampleConteContent.morale}
+                    {conte.morale}
                   </p>
                 </CardContent>
               </Card>

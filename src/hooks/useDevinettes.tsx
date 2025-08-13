@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
@@ -32,54 +32,56 @@ export const useDevinettes = () => {
   const [progress, setProgress] = useState<UserDevinetteProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchDevinettes = useCallback(async () => {
-    const { data, error } = await supabase.from('devinettes').select('*');
-    if (error) {
-      toast.error('Erreur lors du chargement des devinettes.');
-      console.error(error);
-    } else {
-      setDevinettes(data as Devinette[]);
-    }
-  }, []);
-
-  const fetchProgress = useCallback(async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('user_devinette_progress')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') { // Ignore 'no rows found' error
-      toast.error('Erreur lors du chargement de votre progression.');
-      console.error(error);
-    } else if (data) {
-      setProgress(data);
-    } else {
-      // Create initial progress for new user
-      const { data: newProgress, error: insertError } = await supabase
-        .from('user_devinette_progress')
-        .insert({ user_id: user.id })
-        .select()
-        .single();
-      if (insertError) {
-        toast.error("Erreur lors de la création de votre profil de jeu.");
-        console.error(insertError);
-      } else {
-        setProgress(newProgress);
-      }
-    }
-  }, [user]);
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAllData = async () => {
       setLoading(true);
-      await fetchDevinettes();
-      await fetchProgress();
+
+      const devinettesPromise = supabase.from('devinettes').select('*');
+
+      const progressPromise = user
+        ? supabase.from('user_devinette_progress').select('*').eq('user_id', user.id).single()
+        : Promise.resolve({ data: null, error: null });
+
+      const [devinettesResult, progressResult] = await Promise.all([devinettesPromise, progressPromise]);
+
+      // Handle devinettes
+      if (devinettesResult.error) {
+        toast.error('Erreur lors du chargement des devinettes.');
+        console.error(devinettesResult.error);
+      } else {
+        setDevinettes(devinettesResult.data as Devinette[]);
+      }
+
+      // Handle progress
+      if (user) {
+        if (progressResult.error && progressResult.error.code !== 'PGRST116') { // Ignore 'no rows found'
+          toast.error('Erreur lors du chargement de votre progression.');
+          console.error(progressResult.error);
+        } else if (progressResult.data) {
+          setProgress(progressResult.data);
+        } else {
+          // Create initial progress for new user
+          const { data: newProgress, error: insertError } = await supabase
+            .from('user_devinette_progress')
+            .insert({ user_id: user.id })
+            .select()
+            .single();
+          if (insertError) {
+            toast.error("Erreur lors de la création de votre profil de jeu.");
+            console.error(insertError);
+          } else {
+            setProgress(newProgress);
+          }
+        }
+      } else {
+        setProgress(null);
+      }
+
       setLoading(false);
     };
-    void fetchData();
-  }, [fetchDevinettes, fetchProgress]);
+
+    void fetchAllData();
+  }, [user]);
 
   const updateProgress = async (newProgress: Partial<UserDevinetteProgress>) => {
     if (!user || !progress) return;
