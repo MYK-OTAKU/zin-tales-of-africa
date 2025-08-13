@@ -51,8 +51,22 @@ const Devinettes = () => {
   const [showHint, setShowHint] = useState(false);
   const [answeredCorrectly, setAnsweredCorrectly] = useState<boolean | null>(null);
   const [multiplier, setMultiplier] = useState(1);
-  
-  const currentDevinette = accessibleDevinettes[currentDevIndex];
+  const [selectedCategory, setSelectedCategory] = useState("Toutes");
+
+  const filteredDevinettes =
+    selectedCategory === "Toutes"
+      ? accessibleDevinettes
+      : accessibleDevinettes.filter((d) => d.categorie === selectedCategory);
+
+  const currentDevinette = filteredDevinettes[currentDevIndex];
+
+  useEffect(() => {
+    setCurrentDevIndex(0);
+    setUserAnswer("");
+    setShowAnswer(false);
+    setShowHint(false);
+    setAnsweredCorrectly(null);
+  }, [selectedCategory]);
   
   const experienceToNextLevel = (progress?.level || 1) * 100;
   const levelProgress = ((progress?.experience || 0) % 100);
@@ -148,14 +162,14 @@ const Devinettes = () => {
   };
   
   const handleNextDevinette = () => {
-    if (currentDevIndex < accessibleDevinettes.length - 1) {
+    if (currentDevIndex < filteredDevinettes.length - 1) {
       setCurrentDevIndex(currentDevIndex + 1);
       setUserAnswer("");
       setShowAnswer(false);
       setShowHint(false);
       setAnsweredCorrectly(null);
     } else {
-      toast.success("Félicitations ! Vous avez terminé toutes les devinettes disponibles !");
+      toast.success("Félicitations ! Vous avez terminé toutes les devinettes de cette catégorie !");
     }
   };
   
@@ -240,29 +254,46 @@ const Devinettes = () => {
           </Card>
         </div>
 
+        {/* Filtres de catégories */}
+        <div className="flex justify-center flex-wrap gap-2 mb-6">
+          {['Toutes', 'Animaux', 'Nature', 'Culture', 'Spiritualité', 'Valeurs', 'Particulier'].map(cat => (
+            <Button
+              key={cat}
+              variant={selectedCategory === cat ? 'default' : 'outline'}
+              onClick={() => setSelectedCategory(cat)}
+              className={selectedCategory === cat
+                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-600'
+                : 'bg-white/70 border-orange-300 text-orange-800 hover:bg-orange-50 hover:text-orange-900'}
+            >
+              {cat}
+            </Button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Devinette principale */}
           <div className="lg:col-span-2">
-            <Card className="shadow-xl border-2 border-orange-200 bg-white/90 backdrop-blur-sm">
-              <CardHeader className="text-center pb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <Badge className={`${getDifficultyColor(currentDevinette.difficulte)} font-semibold`}>
-                    {currentDevinette.difficulte.toUpperCase()}
-                  </Badge>
-                  <Badge variant="outline" className="border-orange-300 text-orange-700">
-                    {currentDevinette.categorie}
-                  </Badge>
-                  {currentDevinette.is_premium && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Premium
+            {filteredDevinettes.length > 0 ? (
+              <Card className="shadow-xl border-2 border-orange-200 bg-white/90 backdrop-blur-sm">
+                <CardHeader className="text-center pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <Badge className={`${getDifficultyColor(currentDevinette.difficulte)} font-semibold`}>
+                      {currentDevinette.difficulte.toUpperCase()}
                     </Badge>
-                  )}
-                </div>
-                
-                <CardTitle className="text-2xl text-gray-800 leading-relaxed">
-                  {currentDevinette.question}
-                </CardTitle>
+                    <Badge variant="outline" className="border-orange-300 text-orange-700">
+                      {currentDevinette.categorie}
+                    </Badge>
+                    {currentDevinette.is_premium && (
+                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Premium
+                      </Badge>
+                    )}
+                  </div>
+
+                  <CardTitle className="text-2xl text-gray-800 leading-relaxed">
+                    {currentDevinette.question}
+                  </CardTitle>
                 
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <div className="flex items-center gap-1">
@@ -399,12 +430,12 @@ const Devinettes = () => {
                   </Button>
                   
                   <span className="text-sm text-gray-600 font-medium">
-                    {currentDevIndex + 1} / {accessibleDevinettes.length}
+                    {currentDevIndex + 1} / {filteredDevinettes.length}
                   </span>
                   
                   <Button
                     onClick={handleNextDevinette}
-                    disabled={currentDevIndex >= accessibleDevinettes.length - 1}
+                    disabled={currentDevIndex >= filteredDevinettes.length - 1}
                     variant="outline"
                     className="border-orange-300 text-orange-700"
                   >
@@ -413,6 +444,17 @@ const Devinettes = () => {
                 </div>
               </CardContent>
             </Card>
+            ) : (
+              <Card className="shadow-xl border-2 border-orange-200 bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-10 text-center">
+                  <Brain className="h-12 w-12 mx-auto mb-4 text-orange-400" />
+                  <h3 className="text-xl font-semibold text-gray-700">Aucune devinette ici</h3>
+                  <p className="text-gray-500 mt-2">
+                    Il n'y a pas encore de devinettes dans cette catégorie. Essayez-en une autre !
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Panneau latéral */}

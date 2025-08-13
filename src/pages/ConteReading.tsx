@@ -69,7 +69,9 @@ const ConteReading = () => {
     updateUserProgress, 
     toggleFavorite, 
     canAccessConte, 
-    getAccessMessage 
+    getAccessMessage,
+    generateImage,
+    updateContePage
   } = useContes();
 
   // États du conte
@@ -95,6 +97,35 @@ const ConteReading = () => {
   const [fontSize, setFontSize] = useState(16);
   const [showSettings, setShowSettings] = useState(false);
   const [textHighlight, setTextHighlight] = useState("");
+  const [generatingPageImageId, setGeneratingPageImageId] = useState<string | null>(null);
+
+  const handleGeneratePageImage = async (page: ContePage) => {
+    if (!user || !conte) return;
+    setGeneratingPageImageId(page.id);
+    try {
+      const prompt = `Illustration pour une scène de conte africain : "${page.contenu.substring(0, 250)}..."`;
+      const imageUrl = await generateImage(prompt, conte.categorie);
+      if (imageUrl) {
+        const updatedPage = await updateContePage(page.id, { image_url: imageUrl });
+        if (updatedPage) {
+          setPages(currentPages =>
+            currentPages.map(p => p.id === page.id ? updatedPage : p)
+          );
+          toast.success("Illustration de la page générée et sauvegardée !");
+        }
+      }
+    } catch (error) {
+      toast.error("Erreur lors de la génération de l'illustration.");
+      console.error(error);
+    } finally {
+      setGeneratingPageImageId(null);
+    }
+  };
+
+  const currentPageRef = useRef(currentPage);
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
 
   // Générer les données audio
   const audioData = conte ? generateConteAudioData(conte) : null;
@@ -163,7 +194,23 @@ const ConteReading = () => {
     };
 
     loadConte();
-  }, [id]);
+  }, [id, user, fetchContePages, fetchUserProgress, canAccessConte, getAccessMessage, navigate]);
+
+  // Sauvegarde de la progression en quittant la page
+  useEffect(() => {
+    return () => {
+      if (conte && user && pages.length > 0) {
+        const finalPageIndex = currentPageRef.current;
+        updateUserProgress(
+          conte.id,
+          finalPageIndex + 1,
+          finalPageIndex === pages.length - 1,
+          isFavorite
+        );
+      }
+    };
+  }, [conte, user, pages, isFavorite, updateUserProgress]);
+
 
   // Configuration audio
   useEffect(() => {
@@ -438,11 +485,26 @@ const ConteReading = () => {
                     {/* Image de la page */}
                     <div className="relative rounded-lg overflow-hidden">
                       <img
-                        src={currentPageData?.image || defaultImages[conte.categorie] || araigneeElephantImg}
+                        src={currentPageData?.image_url || defaultImages[conte.categorie] || araigneeElephantImg}
                         alt={`Page ${currentPage + 1} - ${conte.titre}`}
                         className="w-full h-64 object-cover"
                       />
                     </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 border-orange-200 text-orange-700 hover:bg-orange-50"
+                      onClick={() => handleGeneratePageImage(currentPageData)}
+                      disabled={generatingPageImageId === currentPageData?.id}
+                    >
+                      {generatingPageImageId === currentPageData?.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 mr-2" />
+                      )}
+                      Générer une illustration pour cette page
+                    </Button>
 
                     {/* Texte de la page */}
                     <div 
@@ -498,10 +560,24 @@ const ConteReading = () => {
                         </div>
                         
                         <img
-                          src={page.image || defaultImages[conte.categorie] || araigneeElephantImg}
+                          src={page.image_url || defaultImages[conte.categorie] || araigneeElephantImg}
                           alt={`Page ${index + 1}`}
                           className="w-full h-48 object-cover rounded-lg"
                         />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2 border-orange-200 text-orange-700 hover:bg-orange-50"
+                          onClick={() => handleGeneratePageImage(page)}
+                          disabled={generatingPageImageId === page.id}
+                        >
+                          {generatingPageImageId === page.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4 mr-2" />
+                          )}
+                          Générer une illustration
+                        </Button>
                         
                         <p 
                           className={`leading-relaxed ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}

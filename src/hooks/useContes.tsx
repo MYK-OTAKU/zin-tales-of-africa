@@ -225,6 +225,50 @@ export const useContes = () => {
     fetchContes();
   }, [subscribed]);
 
+  const updateConte = async (conteId: string, updates: Partial<Conte>): Promise<Conte | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('contes')
+        .update(updates)
+        .eq('id', conteId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
+      setContes(currentContes =>
+        currentContes.map(c => c.id === conteId ? { ...c, ...data } : c)
+      );
+      toast.success('Le conte a été mis à jour avec succès.');
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour du conte';
+      toast.error(errorMessage);
+      return null;
+    }
+  };
+
+  const updateContePage = async (pageId: string, updates: Partial<ContePage>): Promise<ContePage | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('conte_pages')
+        .update(updates)
+        .eq('id', pageId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('La page du conte a été mise à jour.');
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la mise à jour de la page';
+      toast.error(errorMessage);
+      return null;
+    }
+  };
+
   return {
     contes,
     loading,
@@ -235,6 +279,8 @@ export const useContes = () => {
     updateUserProgress,
     toggleFavorite,
     generateImage,
+    updateConte,
+    updateContePage,
     canAccessConte,
     getAccessMessage,
     refetch: fetchContes
