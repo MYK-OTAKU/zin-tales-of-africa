@@ -47,7 +47,9 @@ const defaultImages: { [key: string]: string } = {
 
 const categories = ["Toutes", "Sagesse", "Amitié", "Mystique", "Famille", "Magie", "Aventure"];
 
-const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMessage }: any) => {
+import { Loader2, Image as ImageIcon } from "lucide-react";
+
+const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMessage, onGenerateCover, isGenerating }: any) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAudioPreview, setShowAudioPreview] = useState(false);
   const audioData = generateConteAudioData(conte);
@@ -203,6 +205,25 @@ const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMes
                 </>
               )}
             </Button>
+
+            {/* Bouton de génération d'image */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2 border-orange-200 text-orange-700 hover:bg-orange-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateCover(conte);
+              }}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <ImageIcon className="h-4 w-4 mr-2" />
+              )}
+              Générer la couverture
+            </Button>
           </div>
         </CardContent>
       </div>
@@ -215,9 +236,32 @@ const Contes = () => {
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
   const [sortBy, setSortBy] = useState("ordre");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [generatingImageId, setGeneratingImageId] = useState<string | null>(null);
+
   const { user } = useAuth();
   const { subscribed } = useSubscription();
-  const { contes, loading, canAccessConte, getAccessMessage, toggleFavorite } = useContes();
+  const { contes, loading, canAccessConte, getAccessMessage, toggleFavorite, generateImage, updateConte } = useContes();
+
+  const handleGenerateCover = async (conte: any) => {
+    if (!user) {
+      toast.error("Veuillez vous connecter pour générer une image.");
+      return;
+    }
+    setGeneratingImageId(conte.id);
+    try {
+      const prompt = `Couverture de conte africain pour "${conte.titre}". ${conte.description}`;
+      const imageUrl = await generateImage(prompt, conte.categorie);
+      if (imageUrl) {
+        await updateConte(conte.id, { image_url: imageUrl });
+        toast.success("Nouvelle image de couverture générée et sauvegardée !");
+      }
+    } catch (error) {
+      toast.error("Erreur lors de la génération de l'image.");
+      console.error(error);
+    } finally {
+      setGeneratingImageId(null);
+    }
+  };
 
   // Filtrer et trier les contes
   const filteredContes = contes
@@ -375,6 +419,8 @@ const Contes = () => {
                   isFavorite={favorites.includes(conte.id)}
                   canAccess={canAccessConte(conte)}
                   accessMessage={getAccessMessage(conte)}
+                  onGenerateCover={handleGenerateCover}
+                  isGenerating={generatingImageId === conte.id}
                 />
               ))}
             </div>
@@ -431,6 +477,8 @@ const Contes = () => {
                   isFavorite={favorites.includes(conte.id)}
                   canAccess={canAccessConte(conte)}
                   accessMessage={getAccessMessage(conte)}
+                  onGenerateCover={handleGenerateCover}
+                  isGenerating={generatingImageId === conte.id}
                 />
               ))}
             </div>

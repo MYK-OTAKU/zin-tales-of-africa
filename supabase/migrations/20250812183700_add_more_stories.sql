@@ -26,3 +26,35 @@ FROM public.contes c WHERE c.titre = 'La Reine de Saba et le Roi Salomon au Mali
 INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
 SELECT c.id, 2, 'La reine, curieuse, entreprit un long voyage vers le nord...'
 FROM public.contes c WHERE c.titre = 'La Reine de Saba et le Roi Salomon au Mali';
+
+-- Le Secret de l''Arbre à Palabres
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 1, 'Au cœur du village de Kénédougou se dressait un baobab millénaire. On l''appelait l''Arbre à Palabres, car ses feuilles murmuraient les secrets que le vent lui apportait.'
+FROM public.contes c WHERE c.titre = 'Le Secret de l''Arbre à Palabres';
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 2, 'Un jour, une grande dispute éclata entre deux familles. Le chef du village, désespéré, les conduisit sous l''Arbre à Palabres pour trouver une solution.'
+FROM public.contes c WHERE c.titre = 'Le Secret de l''Arbre à Palabres';
+
+-- La Fille du Pêcheur et le Génie de l''Eau
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 1, 'Awa était la fille d''un pêcheur du fleuve Niger. Une année, la sécheresse frappa, et les poissons disparurent. On disait que le Djinn, le génie de l''eau, était en colère.'
+FROM public.contes c WHERE c.titre = 'La Fille du Pêcheur et le Génie de l''Eau';
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 2, 'Alors que son village mourait de faim, Awa prit sa plus belle calebasse et alla au milieu du fleuve. Elle chanta une berceuse pour apaiser les esprits.'
+FROM public.contes c WHERE c.titre = 'La Fille du Pêcheur et le Génie de l''Eau';
+
+-- Les Trois Frères et la Montagne d''Or
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 1, 'Il y avait trois frères : l''un était fort comme un buffle, le second rapide comme une gazelle, et le troisième, le plus jeune, était incroyablement intelligent.'
+FROM public.contes c WHERE c.titre = 'Les Trois Frères et la Montagne d''Or';
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 2, 'Ils entendirent parler de la Montagne d''Or. Le premier frère déplaça les rochers, le second distança l''aigle gardien.'
+FROM public.contes c WHERE c.titre = 'Les Trois Frères et la Montagne d''Or';
+
+-- Le Griot qui pouvait parler aux animaux
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 1, 'Bala le griot comprenait le langage des animaux. Il passait ses journées à écouter les conversations de la hyène, du singe et du crocodile.'
+FROM public.contes c WHERE c.titre = 'Le Griot qui pouvait parler aux animaux';
+INSERT INTO public.conte_pages (conte_id, numero_page, contenu)
+SELECT c.id, 2, 'Un jour, un conflit éclata entre les hommes et les singes au sujet des récoltes. La famine menaçait.'
+FROM public.contes c WHERE c.titre = 'Le Griot qui pouvait parler aux animaux';
