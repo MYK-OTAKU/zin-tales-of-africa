@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
   Filter
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useContes } from "@/hooks/useContes";
+import { useContes, Conte } from "@/hooks/useContes";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { generateConteAudioData } from "@/lib/audioUtils";
@@ -49,7 +49,16 @@ const categories = ["Toutes", "Sagesse", "Amitié", "Mystique", "Famille", "Magi
 
 import { Loader2, Image as ImageIcon } from "lucide-react";
 
-const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMessage, onGenerateCover, isGenerating }: any) => {
+const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMessage, onGenerateCover, isGenerating }: {
+  conte: Conte;
+  onPlay: (conte: Conte) => void;
+  onFavorite: (id: string) => void;
+  isFavorite: boolean;
+  canAccess: boolean;
+  accessMessage: string | null;
+  onGenerateCover: (conte: Conte) => void;
+  isGenerating: boolean;
+}) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showAudioPreview, setShowAudioPreview] = useState(false);
   const audioData = generateConteAudioData(conte);
@@ -242,7 +251,7 @@ const Contes = () => {
   const { subscribed } = useSubscription();
   const { contes, loading, canAccessConte, getAccessMessage, toggleFavorite, generateImage, updateConte } = useContes();
 
-  const handleGenerateCover = async (conte: any) => {
+  const handleGenerateCover = async (conte: Conte) => {
     if (!user) {
       toast.error("Veuillez vous connecter pour générer une image.");
       return;
@@ -263,32 +272,34 @@ const Contes = () => {
     }
   };
 
-  // Filtrer et trier les contes
-  const filteredContes = contes
-    .filter(conte => {
-      const matchesSearch = conte.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           conte.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === "Toutes" || conte.categorie === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "titre":
-          return a.titre.localeCompare(b.titre);
-        case "duree":
-          return a.duree_minutes - b.duree_minutes;
-        case "premium":
-          return Number(b.is_premium) - Number(a.is_premium);
-        default:
-          return (a.ordre_affichage || 0) - (b.ordre_affichage || 0);
-      }
-    });
+  // ⚡ Bolt: Memoize filtered and sorted contes to prevent unnecessary recalculations on every render
+  const filteredContes = useMemo(() => {
+    return contes
+      .filter(conte => {
+        const matchesSearch = conte.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             conte.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = selectedCategory === "Toutes" || conte.categorie === selectedCategory;
+        return matchesSearch && matchesCategory;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "titre":
+            return a.titre.localeCompare(b.titre);
+          case "duree":
+            return a.duree_minutes - b.duree_minutes;
+          case "premium":
+            return Number(b.is_premium) - Number(a.is_premium);
+          default:
+            return (a.ordre_affichage || 0) - (b.ordre_affichage || 0);
+        }
+      });
+  }, [contes, searchTerm, selectedCategory, sortBy]);
 
-  // Séparer les contes gratuits et premium
-  const contesGratuits = filteredContes.filter(conte => !conte.is_premium);
-  const contesPremium = filteredContes.filter(conte => conte.is_premium);
+  // ⚡ Bolt: Memoize the split between free and premium contes
+  const contesGratuits = useMemo(() => filteredContes.filter(conte => !conte.is_premium), [filteredContes]);
+  const contesPremium = useMemo(() => filteredContes.filter(conte => conte.is_premium), [filteredContes]);
 
-  const handlePlay = (conte: any) => {
+  const handlePlay = (conte: Conte) => {
     toast.success(`Lecture de "${conte.titre}" démarrée`);
   };
 
