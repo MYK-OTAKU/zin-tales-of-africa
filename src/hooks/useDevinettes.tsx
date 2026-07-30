@@ -84,7 +84,14 @@ export const useDevinettes = () => {
           }
         }
       } else {
-        setProgress(null);
+        setProgress({
+          score: 0,
+          level: 1,
+          experience: 0,
+          streak: 0,
+          badges: [],
+          completed_devinettes: []
+        });
       }
 
       setLoading(false);
@@ -94,7 +101,13 @@ export const useDevinettes = () => {
   }, [user]);
 
   const updateProgress = async (newProgress: Partial<UserDevinetteProgress>) => {
-    if (!user || !progress) return;
+    if (!progress) return;
+
+    // Update local state immediately
+    const updatedLocal = { ...progress, ...newProgress };
+    setProgress(updatedLocal);
+
+    if (!user) return; // if guest, just update local state
 
     const { data, error } = await supabase
       .from('user_devinette_progress')
