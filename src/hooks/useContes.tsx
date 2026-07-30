@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
@@ -53,7 +53,7 @@ export const useContes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContes = async () => {
+  const fetchContes = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -78,9 +78,9 @@ export const useContes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchContePages = async (conteId: string): Promise<ContePage[]> => {
+  const fetchContePages = useCallback(async (conteId: string): Promise<ContePage[]> => {
     try {
       const { data, error: fetchError } = await supabase
         .from('conte_pages')
@@ -95,9 +95,9 @@ export const useContes = () => {
       toast.error(errorMessage);
       return [];
     }
-  };
+  }, []);
 
-  const fetchUserProgress = async (conteId: string): Promise<UserProgress | null> => {
+  const fetchUserProgress = useCallback(async (conteId: string): Promise<UserProgress | null> => {
     if (!user) return null;
 
     try {
@@ -114,9 +114,9 @@ export const useContes = () => {
       console.error('Erreur lors du chargement du progrès:', err);
       return null;
     }
-  };
+  }, [user]);
 
-  const updateUserProgress = async (
+  const updateUserProgress = useCallback(async (
     conteId: string, 
     page: number, 
     termine = false, 
@@ -161,9 +161,9 @@ export const useContes = () => {
       toast.error(errorMessage);
       throw err;
     }
-  };
+  }, [user]);
 
-  const toggleFavorite = async (conteId: string): Promise<boolean> => {
+  const toggleFavorite = useCallback(async (conteId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -184,9 +184,9 @@ export const useContes = () => {
       toast.error('Erreur lors de la mise à jour des favoris');
       return false;
     }
-  };
+  }, [user, fetchUserProgress, updateUserProgress]);
 
-  const generateImage = async (prompt: string, culturalContext?: string): Promise<string | null> => {
+  const generateImage = useCallback(async (prompt: string, culturalContext?: string): Promise<string | null> => {
     if (!user) {
       toast.error('Vous devez être connecté pour générer des images');
       return null;
@@ -208,24 +208,24 @@ export const useContes = () => {
       toast.error(errorMessage);
       return null;
     }
-  };
+  }, [user]);
 
-  const canAccessConte = (conte: Conte): boolean => {
+  const canAccessConte = useCallback((conte: Conte): boolean => {
     return !conte.is_premium || subscribed;
-  };
+  }, [subscribed]);
 
-  const getAccessMessage = (conte: Conte): string | null => {
+  const getAccessMessage = useCallback((conte: Conte): string | null => {
     if (conte.is_premium && !subscribed) {
       return 'Ce conte est réservé aux abonnés Premium. Abonnez-vous pour y accéder !';
     }
     return null;
-  };
+  }, [subscribed]);
 
   useEffect(() => {
     fetchContes();
   }, [subscribed]);
 
-  const updateConte = async (conteId: string, updates: Partial<Conte>): Promise<Conte | null> => {
+  const updateConte = useCallback(async (conteId: string, updates: Partial<Conte>): Promise<Conte | null> => {
     try {
       const { data, error } = await supabase
         .from('contes')
@@ -247,9 +247,9 @@ export const useContes = () => {
       toast.error(errorMessage);
       return null;
     }
-  };
+  }, [user]);
 
-  const updateContePage = async (pageId: string, updates: Partial<ContePage>): Promise<ContePage | null> => {
+  const updateContePage = useCallback(async (pageId: string, updates: Partial<ContePage>): Promise<ContePage | null> => {
     try {
       const { data, error } = await supabase
         .from('conte_pages')
@@ -267,7 +267,7 @@ export const useContes = () => {
       toast.error(errorMessage);
       return null;
     }
-  };
+  }, [user]);
 
   return {
     contes,
