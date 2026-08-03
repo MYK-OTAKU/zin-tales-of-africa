@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,10 +53,12 @@ const Devinettes = () => {
   const [multiplier, setMultiplier] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("Toutes");
 
-  const filteredDevinettes =
-    selectedCategory === "Toutes"
+  // ⚡ Bolt: Memoize filtered devinettes to avoid recalculation
+  const filteredDevinettes = useMemo(() => {
+    return selectedCategory === "Toutes"
       ? accessibleDevinettes
       : accessibleDevinettes.filter((d) => d.categorie === selectedCategory);
+  }, [selectedCategory, accessibleDevinettes]);
 
   const currentDevinette = filteredDevinettes[currentDevIndex];
 
