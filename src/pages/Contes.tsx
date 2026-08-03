@@ -105,6 +105,7 @@ const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMes
               size="sm"
               onClick={handleFavoriteClick}
               className="ml-2 hover:bg-red-100"
+              aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
               <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
             </Button>
@@ -133,6 +134,7 @@ const ConteCard = ({ conte, onPlay, onFavorite, isFavorite, canAccess, accessMes
                 size="lg"
                 onClick={handleAudioPreview}
                 className="bg-white/90 hover:bg-white text-orange-600 hover:text-orange-700 rounded-full shadow-lg"
+                aria-label={`Écouter l'aperçu de ${conte.titre}`}
               >
                 <PlayCircle className="h-8 w-8" />
               </Button>
